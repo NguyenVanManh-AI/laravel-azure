@@ -1,0 +1,52 @@
+* {
+    box-sizing: border-box;
+    padding: 0;
+    margin: 0;
+}
+
+a {
+    text-decoration: none;
+}
+
+li {
+    list-style: none;
+}
+
+::-webkit-scrollbar {
+    width: 13px;
+}
+
+::-webkit-scrollbar-track {
+    background: white;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 10px;
+    border: 3px solid transparent;
+    background-clip: content-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #0085FF;
+    border-radius: 10px;
+    border: 3px solid transparent;
+    background-clip: content-box;
+}
+
+#content-main {
+    position: relative;
+}
+
+#index_article {
+    position: unset;
+}
+
+#pagination_container {
+    position: absolute;
+    bottom: 6px;
+}
+
+#my_article {
+    position: unset;
+}
