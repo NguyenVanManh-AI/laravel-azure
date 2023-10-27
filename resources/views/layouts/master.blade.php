@@ -16,7 +16,7 @@
         integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
 
     {{-- toastr --}}
-    <link rel="stylesheet" href="http://cdn.bootcss.com/toastr.js/latest/css/toastr.min.css">
+    <link rel="stylesheet" href="https://cdn.bootcss.com/toastr.js/latest/css/toastr.min.css">
 
     <link rel="stylesheet" href="{{ asset('user/css/master.css') }}">
 
@@ -65,8 +65,8 @@
 <body>
 
     {{-- toastr --}}
-    <script src="http://cdn.bootcss.com/jquery/2.2.4/jquery.min.js"></script>
-    <script src="http://cdn.bootcss.com/toastr.js/latest/js/toastr.min.js"></script>
+    <script src="https://cdn.bootcss.com/jquery/2.2.4/jquery.min.js"></script>
+    <script src="https://cdn.bootcss.com/toastr.js/latest/js/toastr.min.js"></script>
 
     {{-- <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>  --}}
     {!! Toastr::message() !!}
