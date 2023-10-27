@@ -1,11 +1,11 @@
 @extends('layouts.master')
 @section('content')
-    <link rel="stylesheet" href="{{ asset('user/css/reset_password.css') }}">
+    <link rel="stylesheet" href="{{ secure_asset('user/css/reset_password.css') }}">
     <div class="container">
         <div class="row">
             <div class="mt-5 col-lg-10 col-xl-9 mx-auto">
                 <div class="card flex-row my-5 border-0 shadow rounded-3 overflow-hidden">
-                    <div style="background-image: url('{{ asset('image/register.jfif') }}')" class="card-img-left d-none d-md-flex">
+                    <div style="background-image: url('{{ secure_asset('image/register.jfif') }}')" class="card-img-left d-none d-md-flex">
                     </div>
                     <div class="card-body pt-4 pb-4 pl-5 pr-5">
                         <h5 class="card-title text-center mb-4 fw-light fs-5">Reset Password</h5>
