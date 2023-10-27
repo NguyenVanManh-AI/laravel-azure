@@ -9,7 +9,7 @@
                     </div>
                     <div class="card-body pt-4 pb-4 pl-5 pr-5">
                         <h5 class="card-title text-center mb-4 fw-light fs-5">Reset Password</h5>
-                        <form method="POST" action="{{ route('admin_forgot_update') }}" enctype="multipart/form-data">
+                        <form method="GET" action="{{ route('admin_forgot_update') }}" enctype="multipart/form-data">
                             @csrf
                             <input hidden value="{{ old('token') }}" name="token" type="text" class="form-control"
                                 id="token" placeholder="Token">
