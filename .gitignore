@@ -14,5 +14,3 @@ yarn-error.log
 /.idea
 /.vscode
 cghooks.lock
-
-/app/Enums/UserEnum.php
