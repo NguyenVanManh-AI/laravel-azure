@@ -241,6 +241,7 @@ Route::prefix('work-schedule')->controller(WorkScheduleController::class)->group
 Route::prefix('public')->controller(PublicController::class)->group(function () {
     Route::post('/read-search/{name}/{id}', 'readSearch');
     Route::post('/calculator-bmi', 'calculatorBMI');
+    Route::get('/search-home', 'searchHome');
 });
 
 // Seeder Value

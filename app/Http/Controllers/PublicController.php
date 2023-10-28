@@ -24,5 +24,10 @@ class PublicController extends Controller
     {
         return $this->publicService->calculatorBMI($request);
     }
+
+    public function searchHome(Request $request)
+    {
+        return $this->publicService->searchHome($request);
+    }
     
 }

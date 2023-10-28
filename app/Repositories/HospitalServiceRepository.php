@@ -24,6 +24,9 @@ class HospitalServiceRepository extends BaseRepository implements HospitalServic
         $data = (new self)->model
             ->when(!empty($filter->id_hospital_department), function ($query) use ($filter) {
                 $query->where('id_hospital_department', '=', $filter->id_hospital_department);
+            })
+            ->when(!empty($filter->search), function ($query) use ($filter) {
+                $query->where('hospital_services.name', 'LIKE', '%' . $filter->search . '%');
             });
 
         return $data;

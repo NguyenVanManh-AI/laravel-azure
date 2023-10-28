@@ -3,11 +3,14 @@
 namespace App\Services;
 
 use App\Http\Requests\RequestCalculatorBMI;
+use App\Models\Department;
 use App\Repositories\ArticleRepository;
 use App\Repositories\CategoryRepository;
 use App\Repositories\DepartmentRepository;
+use App\Repositories\HospitalServiceRepository;
 use App\Repositories\InforDoctorRepository;
 use App\Repositories\InforHospitalRepository;
+use App\Repositories\UserRepository;
 use Illuminate\Http\Request;
 use Throwable;
 
@@ -123,29 +126,70 @@ class PublicService
         }
     }
 
-    public function calculatorBMI(RequestCalculatorBMI $request) {
-        $height = $request->height;
-        $weight = $request->weight;
+    public function calculatorBMI(RequestCalculatorBMI $request)
+    {
+        try {
 
-        $bmi = round($weight / ($height/100 * $height/100),1);
+            $height = $request->height;
+            $weight = $request->weight;
 
-        $data = (object) [
-            'bmi' => $bmi,
-            'age' => $request->age,
-            'gender' => $request->gender,
-            'height' => $height,
-            'weight' => $weight,
-        ];
+            $bmi = round($weight / ($height / 100 * $height / 100), 1);
 
-        if($bmi <= 18.4) $condition = 'Thiếu cân' ;
-        if(18.5 <= $bmi && $bmi <= 22.9) $condition = 'Khỏe mạnh' ;
-        if(23 <= $bmi && $bmi <= 24.9) $condition = 'Thừa cân' ;
-        if(23 <= $bmi && $bmi <= 24.9) $condition = 'Thừa cân' ;
-        if(25 <= $bmi && $bmi <= 29.9) $condition = 'Béo phí độ 1' ;
-        if($bmi >= 30) $condition = 'Béo phí độ 2' ;
+            $data = (object) [
+                'bmi' => $bmi,
+                'age' => $request->age,
+                'gender' => $request->gender,
+                'height' => $height,
+                'weight' => $weight,
+            ];
 
-        $data->condition = $condition;
-        
-        return $this->responseOK(200, $data, 'Tính chỉ số BMI thành công !');
+            if ($bmi <= 18.4) $condition = 'Thiếu cân';
+            if (18.5 <= $bmi && $bmi <= 22.9) $condition = 'Khỏe mạnh';
+            if (23 <= $bmi && $bmi <= 24.9) $condition = 'Thừa cân';
+            if (23 <= $bmi && $bmi <= 24.9) $condition = 'Thừa cân';
+            if (25 <= $bmi && $bmi <= 29.9) $condition = 'Béo phí độ 1';
+            if ($bmi >= 30) $condition = 'Béo phí độ 2';
+
+            $data->condition = $condition;
+
+            return $this->responseOK(200, $data, 'Tính chỉ số BMI thành công !');
+        } catch (Throwable $e) {
+            return $this->responseError(400, $e->getMessage());
+        }
+    }
+
+    public function searchHome(Request $request)
+    {
+        try {
+
+            $search = $request->search;
+            $filter = (object) ['search' => $search];
+            $departments = DepartmentRepository::searchDepartment($filter)->limit(4)->get();
+            $hospitalServices = HospitalServiceRepository::getHospitalService($filter)->limit(4)->get();
+            foreach($hospitalServices as $hospitalService) $hospitalService->infor = json_decode($hospitalService->infor);
+            $filter = (object) [
+                'search' => $search,
+                'role' => 'hospital'
+            ];
+            $hospitals = UserRepository::searchUser($filter)->limit(4)->get();
+
+            $filter = (object) [
+                'search' => $search,
+                'role' => 'doctor'
+            ];
+            $doctors = UserRepository::searchUser($filter)->limit(4)->get();
+
+            $data = [
+                'departments' => $departments,
+                'services' => $hospitalServices,
+                'hospitals' => $hospitals,
+                'doctors' => $doctors,
+            ];
+
+            return $this->responseOK(200, $data, 'Tìm kiếm thành công !');
+
+        } catch (Throwable $e) {
+            return $this->responseError(400, $e->getMessage());
+        }
     }
 }
