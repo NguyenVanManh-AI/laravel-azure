@@ -12,5 +12,5 @@ class UserEnum extends BaseEnum
     // public const DOMAIN_PATH = 'http://localhost:8000/'; // laragon 
 
     public const DOMAIN_CLIENT = 'http://localhost:4200/';
-    public const DOMAIN_PATH = 'http://192.168.11.195:8000/'; // azure 
+    public const DOMAIN_PATH = 'https://vanmanh.azurewebsites.net/'; // azure 
 }
