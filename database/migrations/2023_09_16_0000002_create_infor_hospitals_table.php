@@ -18,7 +18,7 @@ return new class extends Migration
             $table->unsignedBigInteger('id_hospital');
             $table->integer('province_code')->nullable();
             $table->json('infrastructure')->nullable();
-            $table->text('description')->nullable();
+            $table->longText('description')->nullable();
             $table->json('location')->nullable();
             $table->integer('search_number')->default(0);
             $table->timestamps();

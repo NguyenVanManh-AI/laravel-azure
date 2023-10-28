@@ -18,7 +18,7 @@ return new class extends Migration
             $table->unsignedBigInteger('id_hospital')->unique();
             $table->json('times');
             $table->boolean('enable')->default(true);
-            $table->text('note')->nullable();
+            $table->longText('note')->nullable();
             $table->timestamps();
 
             $table->foreign('id_hospital')->references('id_hospital')->on('infor_hospitals')->onDelete('cascade');

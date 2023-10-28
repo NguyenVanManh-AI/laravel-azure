@@ -140,8 +140,9 @@ class UserService
             $isUser = 1;
             $user = PasswordResetRepository::findPasswordReset($email, $isUser);
             if ($user) {
-                $data = ['token' => $token];
-                $user = UserRepository::updateUser($user->id, $data);
+                // $data = ['token' => $token];
+                // $user = PasswordResetRepository::updatePasswordReset($user, $data);
+                $user->update(['token' => $token]);
             } else {
                 PasswordResetRepository::createToken($email, $isUser, $token);
             }

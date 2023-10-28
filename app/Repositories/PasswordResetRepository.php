@@ -41,4 +41,18 @@ class PasswordResetRepository extends BaseRepository implements PasswordResetInt
     {
         return (new self)->model->where('token', $token)->first();
     }
+
+    public static function updatePasswordReset($result, $data)
+    {
+        DB::beginTransaction();
+        try {
+            $result->update($data);
+            DB::commit();
+
+            return $result;
+        } catch (Throwable $e) {
+            DB::rollback();
+            throw $e;
+        }
+    }
 }

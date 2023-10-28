@@ -42,8 +42,8 @@ class HospitalServiceService
         try {
             $user = auth()->guard('user_api')->user();
             $filter = [
-                'id' => $request->id_hospital_department,
-                'id_hospital' => $user->id,
+                'id' => $request->id_hospital_department, // tìm id id_hospital_department (này lấy ra được từ selection những chuyên khoa của bệnh viện)
+                'id_hospital' => $user->id, // để xem có phải là của hospital này không 
             ];
             $hospitalDepartment = HospitalDepartmentRepository::getHospitalDepartment($filter)->first();
 
@@ -51,6 +51,8 @@ class HospitalServiceService
                 return $this->responseError(404, 'Không tìm thấy khoa trong bệnh viện !');
             }
 
+            // lúc lưu vào thì id_hospital_department của bảng sẽ là id của bảng ghi trong bảng hospital_department (chứ không phải là id_department)
+            // vì chỉ cần lấy ra được id của hospital_department là lấy ra được nó của bệnh viện nào và khoa gì 
             $request->merge(['infor' => json_encode($request->infor)]);
             $hospitalService = $this->hospitalService->createHospitalService($request->all());
             $hospitalService->infor = json_decode($hospitalService->infor);

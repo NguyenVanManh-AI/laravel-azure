@@ -12,4 +12,6 @@ interface PasswordResetInterface extends RepositoryInterface
     public static function createToken($email, $isUser, $token);
 
     public static function findByToken($token);
+
+    public static function updatePasswordReset($result, $data);
 }

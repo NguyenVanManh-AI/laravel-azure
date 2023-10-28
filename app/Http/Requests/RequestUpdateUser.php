@@ -34,10 +34,10 @@ class RequestUpdateUser extends FormRequest
             'name' => 'required|string|between:2,100',
             'email' => ['required', 'string', 'email', 'max:100', Rule::unique('users')->ignore($userId)],
             'username' => ['required', 'string', 'max:100', Rule::unique('users')->ignore($userId)],
-            'address' => 'required|string|min:1',
-            'date_of_birth' => 'required|string|min:1',
-            'phone' => 'required|min:9|numeric',
-            'gender' => 'required|in:0,1,2',
+            'address' => 'string|min:1',
+            'date_of_birth' => 'string|min:1',
+            'phone' => 'min:9|numeric',
+            'gender' => 'in:0,1,2',
         ];
     }
 

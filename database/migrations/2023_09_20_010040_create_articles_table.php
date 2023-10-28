@@ -18,7 +18,7 @@ return new class extends Migration
             $table->unsignedBigInteger('id_user')->nullable();
             $table->unsignedBigInteger('id_category')->nullable();
             $table->string('title');
-            $table->text('content');
+            $table->longText('content');
             $table->string('thumbnail')->nullable();
             $table->integer('search_number')->default(0);
             $table->boolean('is_accept')->nullable();

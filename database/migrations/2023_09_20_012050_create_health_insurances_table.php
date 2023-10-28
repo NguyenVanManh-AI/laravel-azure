@@ -16,7 +16,7 @@ return new class extends Migration
         Schema::create('health_insurances', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->text('description');
+            $table->longText('description');
             $table->timestamps();
         });
     }

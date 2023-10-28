@@ -14,8 +14,17 @@ class DatabaseSeeder extends Seeder
     public function run()
     {
         $this->call([
-            ExamplesTableSeeder::class,
-            // Other seeders here
+            AdminsSeeder::class,
+            CategoriesSeeder::class,
+            DepartmentsSeeder::class,
+            ProvincesSeeder::class,
+            UsersSeeder::class,
+            HospitalDepartmentsSeeder::class,
+            HospitalServicesSeeder::class,
+            HealthInsurancesSeeder::class,
+            HealthInsuranceHospitalsSeeder::class,
+            DoctorsSeeder::class,
+            ArticlesSeeder::class,
         ]);
     }
 }
