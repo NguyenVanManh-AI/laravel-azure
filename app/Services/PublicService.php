@@ -162,22 +162,22 @@ class PublicService
     {
         try {
 
-            $search = $request->search;
-            $filter = (object) ['search' => $search];
+            $search = $request->search ?? '';
+            $filter = (object) [
+                'search' => $search,
+                'province_code' => $request->province_code ?? null,
+                // không nên code như sau : 'province_code' => $request->province_code ?? '',
+            ];
             $departments = DepartmentRepository::searchDepartment($filter)->limit(4)->get();
-            $hospitalServices = HospitalServiceRepository::getHospitalService($filter)->limit(4)->get();
-            foreach($hospitalServices as $hospitalService) $hospitalService->infor = json_decode($hospitalService->infor);
-            $filter = (object) [
-                'search' => $search,
-                'role' => 'hospital'
-            ];
-            $hospitals = UserRepository::searchUser($filter)->limit(4)->get();
 
-            $filter = (object) [
-                'search' => $search,
-                'role' => 'doctor'
-            ];
-            $doctors = UserRepository::searchUser($filter)->limit(4)->get();
+            $hospitalServices = HospitalServiceRepository::searchAll($filter)->limit(4)->get();
+            foreach ($hospitalServices as $hospitalService) $hospitalService->infor = json_decode($hospitalService->infor);
+
+            $filter->role = 'hospital';
+            $hospitals = InforHospitalRepository::searchHospital($filter)->limit(4)->get();
+
+            $filter->role = 'doctor';
+            $doctors = InforDoctorRepository::searchDoctor($filter)->limit(4)->get();
 
             $data = [
                 'departments' => $departments,
@@ -187,7 +187,6 @@ class PublicService
             ];
 
             return $this->responseOK(200, $data, 'Tìm kiếm thành công !');
-
         } catch (Throwable $e) {
             return $this->responseError(400, $e->getMessage());
         }

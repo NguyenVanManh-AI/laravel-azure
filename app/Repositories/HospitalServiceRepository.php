@@ -73,11 +73,13 @@ class HospitalServiceRepository extends BaseRepository implements HospitalServic
             hospital_departments.price as price_hospital_departments,
             
             users_hospital.name as name_hospital, departments.name as name_department,
-            departments.thumbnail as thumbnail_department
+            departments.thumbnail as thumbnail_department,infor_hospitals.province_code as provider_code_service
+
             
             ')
             ->join('hospital_departments', 'hospital_departments.id', '=', 'hospital_services.id_hospital_department')
             ->join('users as users_hospital', 'users_hospital.id', '=', 'hospital_departments.id_hospital')
+            ->join('infor_hospitals', 'infor_hospitals.id_hospital', '=', 'users_hospital.id')
             ->join('departments', 'departments.id', '=', 'hospital_departments.id_department')
 
             ->when(!empty($filter->search), function ($q) use ($filter) {
@@ -86,6 +88,9 @@ class HospitalServiceRepository extends BaseRepository implements HospitalServic
                     ->orWhere('users_hospital.name', 'LIKE', '%' . $filter->search . '%')
                     ->orWhere('departments.name', 'LIKE', '%' . $filter->search . '%');
                 });
+            })
+            ->when(!empty($filter->province_code), function ($query) use ($filter) {
+                return $query->where('infor_hospitals.province_code', $filter->province_code);
             })
             ->when(!empty($filter->id_hospital), function ($query) use ($filter) {
                 return $query->where('id_hospital', $filter->id_hospital);
