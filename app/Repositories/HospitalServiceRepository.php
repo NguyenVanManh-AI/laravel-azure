@@ -93,7 +93,7 @@ class HospitalServiceRepository extends BaseRepository implements HospitalServic
                 return $query->where('infor_hospitals.province_code', $filter->province_code);
             })
             ->when(!empty($filter->id_hospital), function ($query) use ($filter) {
-                return $query->where('id_hospital', $filter->id_hospital);
+                return $query->where('infor_hospitals.id_hospital', $filter->id_hospital);
             })
             ->when(!empty($filter->orderBy), function ($query) use ($filter) {
                 $query->orderBy($filter->orderBy, $filter->orderDirection);
@@ -101,8 +101,33 @@ class HospitalServiceRepository extends BaseRepository implements HospitalServic
 
             ->when(!empty($filter->id_hospital_services), function ($query) use ($filter) {
                 return $query->where('hospital_services.id', $filter->id_hospital_services);
+            })
+
+            ->when(isset($filter->is_delete), function ($query) use ($filter) {
+                return $query->where('hospital_services.is_delete', $filter->is_delete);
             });
 
         return $data;
     }
 }
+
+/*
+isset($filter->is_delete) => 0 hay 1 đều được đem ra so sánh nghĩa là chỉ cần có tạo biến là được ,
+nếu như bình thường !empty($filter->is_delete) => 0 sẽ là empty => không query luôn
+
+không nên dùng $filter->is_delete !== null vì nếu như này ta không truyền biến vào thì nó sẽ báo lỗi
+
+->when(isset($filter->is_delete), function ($query) use ($filter) {
+    return $query->where('hospital_services.is_delete', $filter->is_delete);
+});
+
+isset($filter->is_delete)
+    + không truyền vào 'is_delete' hoặc truyền vào 'is_delete' => null
+        => Thì sẽ không làm gì cả
+
+    + 'is_delete' => 0 hoặc 'is_delete' => 'avsdvsd'
+        => Thì nó sẽ đem đi so sánh với giá trị 0
+
+    + 'is_delete' => 1 (Đã xóa)
+        => Thì nó sẽ đem đi so sánh với giá trị 1
+*/

@@ -1,0 +1,1729 @@
+ 
+
++ Làm App thì phải deploy lên App Store hoặc CH Play 
++ Nên làm theo mô hình API - Client 
++ Add Thanh Toán bằng VNPay hoặc Momo
+
+-------------------------------------------------------
+
+Lịch làm việc của bệnh viện sẽ được lưu theo ngày 
+
+hospital 1 - n time_works 
+
+một ngày sẽ có 3 ca , ví dụ sẽ được lưu như sau 
+
+time_works (của một tuần)
+    id : 
+    id_hospital : 
+    times : {
+        monday : {
+            enable : true,
+            morning : {
+                enable : true,
+                time : [7:30, 11:30]
+            },
+            afternoon : {
+                enable : true,
+                time : [13:30, 16:30]
+            },
+            night : {
+                enable : true,
+                time : [18:00, 20:00]
+            }
+        },
+        tuesday : {
+            enable : true,
+            morning : {
+                enable : true,
+                time : [7:30, 11:30]
+            },
+            afternoon : {
+                enable : true,
+                time : [13:30, 16:30]
+            },
+            night : {
+                enable : true,
+                time : [18:00, 20:00]
+            }
+        },
+        ...
+    }
+
+    => Lịch làm việc của công ty sẽ được lưu cố định như này , chỉ là tùy chỉnh lại start end phù hợp của từng công ty 
+    
+    Nhưng khi trả về lịch ĐỂ USER đặt dịch vụ và để user đặc lịch hẹn thì phải trả về như sau : 
+        + CĂN CỨ VÀO : time_advise: minute của bảng hospitals_departments (thời gian tư vấn của mỗi khoa của mỗi bác sĩ)
+            mà mình cho STEP của lịch show ra cho User đặt lịch hẹn tư vấn là như thế nào 
+
+        + CĂN CỨ VÀO : time_advise: minute của bảng services (thời gian làm dịch vụ của mỗi dịch vụ của bệnh vuện đó)
+            mà mình cho STEP của lịch show ra cho User đặt lịch làm dịch vụ là như thế nào 
+
+        + Sau đó loại bỏ đi các đoạn thời gian không rảnh (có lịch làm việc khác, nghỉ,...) của bác sĩ 
+
+    + Nó sẽ trông như sau : 
+
+        => gỉa sử lịch hẹn tư vấn có thời gian là 60 phút 
+
+        times : {
+            monday : {
+                enable : true,
+                morning : {
+                    enable : true,
+                    time : [[7:30, 8:30],[8:30, 9:30],...,[10:30, 11:30]]  <= TƯƠNG TỰ VỚI CA KHÁC , TƯƠNG TỰ VỚI NGÀY KHÁC 
+                },
+                afternoon : {
+                    enable : true,
+                    time : [13:30, 16:30]
+                },
+                night : {
+                    enable : true,
+                    time : [18:00, 20:00]
+                }
+            },
+            tuesday : {
+                enable : true,
+                morning : {
+                    enable : true,
+                    time : [7:30, 11:30]
+                },
+                afternoon : {
+                    enable : true,
+                    time : [13:30, 16:30]
+                },
+                night : {
+                    enable : true,
+                    time : [18:00, 20:00]
+                }
+            },
+            ...
+        }
+
+    => CHỈ SHOW RA MỘT TUẦN => SHOW RA ĐÚNG THỜI GIẢN NHƯ NÀY (KHÔNG CẦN CHUYỂN VỀ miliseconds)
+_____________________________________________________________________________________________________________
+
+bảng services chỉ đơn giản là list ra những dịch vụ thuộc khoa nào đó của bệnh viện nào đó 
+còn đặt lịch hẹn tự vấn thì cũng căn cứ vào lịch làm việc của bệnh viện 
+
+Quan trọng là lịch làm việc của bác sĩ . Lịch hẹn và lịch làm dịch vụ sẽ do bệnh viện chỉ định bác sĩ đó làm . 
+Nếu bác sĩ đó chấp nhận sẽ được đưa vào LỊCH LÀM VIỆC CỦA BÁC SĨ (work_schedules)
+
+work_schedules 
+    id 
+    id_doctor
+    id_user 
+    is_appointment <= cho biết đây là lịch hẹn tư vấn hay dịch vụ 
+    is_service <= cho biết đây là lịch hẹn tư vấn hay dịch vụ (nên tách ra các cột vì lỡ sau này có thêm công việc khác ngoài lịch hẹn tư vấn và dịch vụ)
+    id_time_work <= thuộc ngày làm việc nào của bệnh viện 
+    time : [7:30, 8:30] <= giờ cụ thể thuộc ca nào 
+    content
+
+
+Khi người dùng vào đặt lịch hẹn tư vấn theo các bước sau : ( LÀM THÊM CHỌN VỊ TRÍ THÀNH PHỐ ? )
+    + Load ra các chuyên khoa => Chọn chuyên khoa  
+    + Load ra các bệnh viện có chuyên khoa đó => chọn bệnh viện 
+    + Load ra các bác sĩ thuộc chuyên khoa đó => Chọn bác sĩ 
+    + Load ra lịch làm việc của bệnh viện (bao gồm các ngày mà bệnh viện đã thiết lập lịch làm việc) => Chọn ngày làm việc 
+    + Load ra giờ làm việc của ngày đó của bệnh viện và LOẠI BỎ ĐI CÁC GIỜ làm việc mà BÁC SĨ ĐÓ đã bận (có lịch làm việc rồi)
+   
+    (Ở đây phải chấp nhận là có thể load ra bác sĩ sau đó chọn ngày và có thể gặp trường hợp ngày đó không có giờ nào bác sĩ đó rảnh 
+    hoặc xấu nhất là tất cả các ngày bác sĩ đó đều không rảnh) 
+    => Thay vì load ra lịch làm việc của BỆNH VIỆN cho user chọn rồi lên server check ngày đó bác sĩ có rảnh không 
+    => Không ổn và không được làm thế vì user không biết ngày nào nên việc chọn đi chon lại sẽ nhiều hơn 
+    so với việc User chỉ cần thấy ngày này không có giờ rảnh => chọn ngày khác => các ngày không có giờ rảnh 
+    => bác sĩ đó bận tất cả các ngày => Chọn BÁC sĩ khác . 
+
+Khi người dùng đặt lịch dịch vụ (TẠI TRANG CHỦ) theo các bước sau
+    + Load ra cả các Dịch vụ Chọn dịch vụ 
+    + Load ra các bệnh viện có dịch vụ đó 
+    + Load ra bác sĩ thuộc khoa chứa dịch vụ đó 
+    + Load ra các giờ làm việc của bệnh viện và loại bỏ đi các giờ bận của bác sĩ đó 
+
+Khi người dùng đặt lịch dịch vụ tại trang của bệnh viện theo các bước sau 
+    + Load ra các dịch vụ (và số tiề các thứ , những cái trên cx vậy, có thêm mấy thứ như tiền ,...) => Chọn dịch vụ nào đó 
+    + Load ra lịch làm việc của bệnh viện => Chỉ load ra CÁC GIỜ mà có ÍT NHẤT MỘT BÁC SĨ thuộc khoa chứa dịch vụ đó rảnh
+     
+
+
+work_schedules 
+    time : {
+        at : '2001-08-29',
+
+    }
+
+docker-compose run --rm artisan make:model WorkSchedule  -m -c
+docker-compose run --rm artisan make:model VacationSchedule  -m -c
+
+-------------------------------------------------------
+
+https://codechi.com/dev-tools/date-to-millisecond-calculators/
+https://currentmillis.com/
+https://www.timecalculator.net/milliseconds-to-date
+
+-------------------------------------------------------
+
+Lưu ý việc chạy file migrate để tạo database . Các bảng được liên kết đến phải được chạy trước 
+    để các bảng sau khi chạy thì có thể liên kết đến bảng đó . 
+
+Khi dùng lệnh : php artisan migrate hoặc bất kì các lệnh khác như fresh , refresh , reset ,... mà không chỉ đích danh bảng này 
+    thì nó sẽ chạy các file theo như trình tự thời gian tạo các file đó , có nghĩa là trong quá khứ mình tạo file nào trước 
+    thì bây giờ nó chạy hay làm gì thì nó sẽ chạy file đó trước . 
+
+Muốn các file chạy theo trình tự nào thì ta sửa tên file lại . 
+    + File có cấu trúc như sau : 2014_10_12_000000_create_users_table.php
+    => 2014_10_12_000000 đây là năm_tháng_ngày_giây
+    => sửa giây hoặc ngày lại tùy ý mình để cho nó chạy theo ý mình . 
+
+=> Các bảng nào là bảng cha , không có liên kết đến bảng nào thì sẽ sửa ngày và giây lại nhỏ hơn các bảng khác , theo trình tự thời gian như đã nói . 
+Ví dụ ta sửa lại như sau : 
+
+2014_10_12_000000_create_users_table.php
+2014_10_12_100000_create_password_resets_table.php
+2019_08_19_000000_create_failed_jobs_table.php
+2019_12_14_000001_create_personal_access_tokens_table.php
+2023_08_29_093151_create_admins_table.php
+2023_08_29_094421_create_categories_table.php
+2023_09_02_013741_create_jobs_table.php
+2023_09_16_0000002_create_hospitals_table.php <= bảng này sẽ được tạo trước bảng doctor 
+2023_09_16_0000003_create_departments_table.php <= bảng này sẽ được tạo trước bảng doctor 
+2023_09_16_131013_create_doctors_table.php
+2023_09_20_010040_create_articles_table.php
+2023_09_20_011210_create_work_schedules_table.php
+2023_09_20_011351_create_vacation_schedules_table.php
+2023_09_20_011830_create_notifies_table.php
+2023_09_20_011929_create_ratings_table.php
+2023_09_20_012050_create_health_insurances_table.php
+2023_09_20_012303_create_health_insurance_hospitals_table.php
+2023_09_20_012355_create_article_categories_table.php
+2023_09_20_012526_create_hospital_departments_table.php
+2023_09_20_012602_create_time_works_table.php
+2023_09_20_012818_create_hospital_services_table.php
+2023_10_12_000000_create_examples_table.php
+
+TÓM LẠI : 
+    + Đơn giản là thế này 
+        => Vào các file => kiểm tra nó liên kết với những bảng nào (có nghĩa là các bảng này phải tạo trước)
+        => Nhìn vào trình tự sắp xếp file => Xem các file đó có nằm trên (nằm trước) file hiện tại hay không 
+        => Nếu không thì chỉnh lại ngày và giây cho nó nằm trên . 
+        => NHỚ là khi chỉnh lại thì cũng phải xem lại các bảng khác nữa . Lỡ có liên kết gì với bảng khác nữa 
+        mà mình lỡ chỉnh nó nằm trên bảng khác thì lại lỗi tiếp . 
+        => Nói chung là sau khi chỉnh cứ dò từ trên xuống dưới lại . Cho đến khi nào hợp lí thì chạy . 
+
+QUAN TRỌNG : 
+    + Ta chỉ sửa tên những file vừa mới được tạo thôi 
+    + Còn nếu sửa tên của những file đã được chạy để tạo table trong database rồi thì khi mà ta sửa xong 
+    rồi chạy các lệnh lại nó thì xem như các file có tên mới này là các file mới => dẫn đến chạy các file này 
+    và làm lỗi gì các bảng này đã có trong database . 
+    + Lúc này ta chạy roll back hay reset đều không được . 
+    + Nên chỉ chỉnh tên các file mà chưa được chạy 
+    + Lúc này muốn chạy thì chỉ có vào database xóa bảng ấy đi mới chạy được . 
+
+Nói chung : Cách tốt nhất là tạo file có trình tự , phải suy nghĩ cái nào tạo trước , có truóc , rồi mới đến những bảng nào . 
+
+pull code về và chạy lệnh : docker-compose run --rm artisan migrate:fresh
+
+-------------------------------------------------------
+https://www.webucator.com/article/how-to-create-an-er-diagram-for-a-mysql-database-w/
+Các bước để tạo Diagram bằng MYSQL Workbench 
+    1. Database > Reverse Engineer 
+    2. Select your connection and click Continue.
+    3. It will fetch the information it needs. Click Continue.
+    4. Select your database schema and click Continue.
+    5. It will retrieve the information it needs. Click Continue.
+    6. Leave Import MySQL Table Objects and Place imported objects on diagram selected and click Execute.
+-------------------------------------------------------
+
+
+
+else {
+    $avatar = $this->saveAvatar($request);
+    $user = User::create(array_merge(
+        $request->all(),
+        ['password' => Hash::make($request->password), 'is_accept'=> 0, 'role'=> 'user', 'avatar' => $avatar]
+    ));
+
+    $inforUser = InforUser::create(array_merge(
+        $request->all(),
+        ['id_user' => $user->id]
+    ));
+
+    return response()->json([
+        'message' => 'User successfully registered',
+        'user' => array_merge($user->toArray(), $inforUser->toArray()),   <= Kết hợp thuộc tính của 2 object lại 
+    ], 201);
+}
+
+=> Kết hợp lại nó vẫn ra một object này : 
+{
+    "message": "User successfully registered",
+    "user": {
+        "username": "nguyenvanmanh2001it1",
+        "email": "nguyenvanmanh2001it1@gmail.com",
+        "address": "Huế - Việt Nam",
+        "phone": "0971404371",
+        "name": "Nguyễn Văn Mạnh Pro",
+        "avatar": "storage/image/avatars/usersvanmanh.dut_user_1695346409.jpg",
+        "is_accept": 0,
+        "role": "user",
+        "updated_at": "2023-09-22T01:33:29.000000Z",
+        "created_at": "2023-09-22T01:33:29.000000Z",
+        "id": 3,
+        "date_of_birth": "2001-08-29",
+        "gender": "1",
+        "id_user": 3
+    }
+}
+
+-------------------------------------------------------
+
+Lưu ý : Gặp lỗi này thì check file Request , sửa false thành true : 403 THIS ACTION IS UNAUTHORIZED.
+=> Lỗi này có nói một lần rồi 
+
+-------------------------------------------------------
+
+Thêm Middleware Role 
+> php artisan make:middleware CheckUserRole
+
++ docker-compose-laravel\src\app\Http\Middleware\CheckUserRole.php : 
+        <?php
+
+        namespace App\Http\Middleware;
+
+        use Closure;
+        use Illuminate\Support\Facades\Auth;
+
+        class CheckUserRole
+        {
+            public function handle($request, Closure $next, ...$roles)
+            {
+                $user = Auth::user();
+
+                if (!$user) {
+                    return response('Unauthorized', 401);
+                    return response()->json(['status' => 'Unauthorized'], 401);
+                }
+
+                // Kiểm tra xem người dùng có vai trò nằm trong danh sách $roles không
+                if (in_array($user->role, $roles)) {
+                    return $next($request);
+                }
+
+                return response()->json(['status' => 'Forbidden'], 403);
+            }
+        }
+
++ docker-compose-laravel\src\app\Http\Kernel.php : 
+        protected $routeMiddleware = [
+            'auth' => \App\Http\Middleware\Authenticate::class,
+            'role' => \App\Http\Middleware\CheckUserRole::class,     <== thêm dòng này vào 
+            'auth.basic' => \Illuminate\Auth\Middleware\AuthenticateWithBasicAuth::class,
+            'cache.headers' => \Illuminate\Http\Middleware\SetCacheHeaders::class,
+            'can' => \Illuminate\Auth\Middleware\Authorize::class,
+            'guest' => \App\Http\Middleware\RedirectIfAuthenticated::class,
+            'password.confirm' => \Illuminate\Auth\Middleware\RequirePassword::class,
+            'signed' => \Illuminate\Routing\Middleware\ValidateSignature::class,
+            'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
+            'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
+        ];
+
+
++ Thêm vào api.php : 
+
+    Route::prefix('infor-user')->controller(InforUserController::class)->group(function () {
+        Route::middleware(['auth:user_api','role:user'])->group(function () { <== 
+            Route::get('test_midle', 'test_midle');
+        });
+    });
+
+    // Hospital Infor  
+    Route::prefix('infor-hospital')->controller(InforHospitalController::class)->group(function () {
+        Route::middleware(['auth:user_api','role:hospital'])->group(function () { <== 
+            Route::get('test_midle2', 'test_midle2');
+        });
+    });
+
++ Ở đây ta có thể thêm một danh sách role thay vì chỉ một cái : 
+    Route::middleware(['auth:user_api', 'role:doctor,hospital'])->group(function () { <== 
+        // Các route cho bác sĩ (role: doctor) và bệnh viện (role: hospital)
+    });
+
+-------------------------------------------------------
+Message tiếng việt : 
+    Clone gói về: git clone git@github.com:NguyenVanManh-AI/laravel-vietnamese-language-vanmanh.git
+    Cho folder vi và file vi.json vào folder resources/lang của ứng dụng Laravel
+    config/app.php : Đổi giá trị locale thành vi.
+
+folder lang chứa các folder ngôn ngữ , trong đó chứa các file thông báo . Mình có thể tùy chỉnh 
+nội dung các thông báo đó tại file Request hoặc Rule . Hoặc có thể chuyển động ngôn ngữ cho các thông báo đó . 
+
+-------------------------------------------------------
+Ta có thể dd trong API => Postman hay trình duyệt đều trả về giá trị dd cho ta như là code trên web (format đẹp)
+
+-------------------------------------------------------
+------------------------------------------------------------  
+composer require socialiteproviders/github:^4.1 socialiteproviders/google:^4.1 socialiteproviders/twitter:^4.1
+
+OAuth2 Google trong API Laravel 
+
+Truy cập vào : https://console.cloud.google.com/apis/credentials/oauthclient/1079359168744-ehm0qmfgmg4imvbk33n7d97t69sfjb87.apps.googleusercontent.com?project=soy-vision-362513
+    => Ở Authorized redirect URIs => thêm url 
+        Ta có URL1 : http://localhost:8000/authorized/google/callback (web)
+        URL2 : http://localhost:8000/api/user/authorized/google/callback (api)
+
+service.php : 
+    'google' => [
+        'client_id' => '1079359168744-ehm0qmfgmg4imvbk33n7d97t69sfjb87.apps.googleusercontent.com',
+        'client_secret' => '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',
+        'redirect' => 'http://localhost:8000/api/user/authorized/google/callback',
+    ],
+
+api.php : 
+    // Customer 
+    Route::prefix('user')->controller(UserController::class)->group(function () {
+        // OAuth2
+        Route::get('authorized/google', [UserController::class, 'redirectToGoogle'])->name('google');
+        Route::get('authorized/google/callback', [UserController::class, 'handleGoogleCallback']);
+    });
+
+UserController : 
+    public function redirectToGoogle()
+    {
+        return Socialite::driver('google')->stateless()->redirect();
+    }
+
+    public function handleGoogleCallback()
+    {
+        try {
+            $user = Socialite::driver('google')->stateless()->user();
+            return response()->json([
+                'message' => 'User successfully registered',
+                'user' => $user
+            ], 201);
+        } catch (Exception $e) {
+            dd($e->getMessage());
+        }
+    }
+
+    => Điểm khác so với OAuth2 Google web là thêm ->stateless() 
+
+------------------------------------------------------------  
+protected $hidden = [
+    'password',
+    'remember_token',
+];
+=> Ở các model có cái này , đó là lí do json không trả về $password 
+=> Thêm token_verify_email vào thì nó cũng sẽ không trả về token_verify_email của Model User 
+=> Những thông tin này phải được bỏ đi (ẩn đi) trước khi trả về 
+
+-------------------------------------------------------
+Request : 
+    public function rules()
+    {
+        return [
+            'new_password' => 'required|string|min:6|confirmed',
+        ];
+    }
+
+Input sẽ có 2 name : 
+    + new_password
+    + new_password_confirmation
+
+=> với rule confirmed thì thêm '_confirmation' vào sau trường cần confirm 
+
+
+-------------------------------------------------------
+docker-compose run --rm artisan route:cache
+Lưu ý : Khi các route trong web.php hoặc api.php cùng name thì không chạy được lệnh này . 
+Nghĩa là có gì đó sai ở các file routes thì sẽ không chạy được lệnh này . 
+
+-------------------------------------------------------
+Giả sử một cái gì đó lỗi , dùng web thì đôi khi nó hiện lỗi ra ở trang web cho mình , nhưng dùng API thì nó không hiện lỗi ra 
+=> vào file log để xem , ví dụ như gửi mail lỗi hay gì lỗi mà nó không báo ra mà chức năng lại không hoạt động được 
+=> mình nghi ngờ là có lỗi thì vào file C:\Users\ADMIN\Downloads\PBL6\docker-compose-laravel\src\storage\logs\laravel.log để xem 
+
+Ví dụ mình vào xem thì thấy : 
+htmlspecialchars(): Argument #1 ($string) must be of type string, Illuminate\Mail\Message given (View: /var/www/html/resources/
+views/emails/mail_notify.blade.php) {"exception":"[object] (Illuminate\\View\\ViewException(code: 0): 
+htmlspecialchars(): Argument #1 ($string) must be of type string, Illuminate\\Mail\\Message given 
+(View: /var/www/html/resources/views/emails/mail_notify.blade.php) at /var/www/html/vendor/laravel
+/framework/src/Illuminate/Support/helpers.php:123)
+
+=> lỗi htmlspecialchars(): Argument #1 ($string) must be of type string tại file mail_notify.blade.php
+
+-------------------------------------------------------
+<?php
+
+namespace Database\Seeders;
+
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
+
+class CategoriesSeeder extends Seeder
+{
+    public function run()
+    {
+        $categories = [
+            'Sức khỏe răng miệng',
+            'Dược liệu',
+            'Bệnh truyền nhiễm',
+            'Bệnh tiêu hóa',
+            'Bệnh về máu',
+            'Sức khỏe tình dục',
+            'Da liễu',
+            'Dị ứng',
+            'Chăm sóc giấc ngủ',
+            'Bệnh tai mũi họng',
+            'Bệnh cơ xương khớp',
+            'Bệnh thận và Đường tiết niệu',
+            'Bệnh hô hấp',
+            'Bệnh tim mạch',
+            'Tiểu đường',
+            'Sức khỏe mắt',
+            'Thuốc và thực phẩm chức năng',
+            'Mang thai',
+            'Sức khỏe phụ nữ',
+            'Sức khỏe',
+            'Sức khỏe nam giới',
+            'Nuôi dạy con',
+        ];
+
+        foreach ($categories as $category) {
+            DB::table('categories')->insert([
+                'name' => $category,
+                'thumbnail' => 'storage/image/thumbnail/category.png',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
+    }
+}
+
+=> Code như này nó sẽ gọn hơn so với ghi chi tiết từng bảng ghi . 
+=> Nếu các cột đều giống nhau thì nên làm như này . 
+
+=> Xem file DepartmentsSeeder.php sẽ thấy code chi tiết ra từng bảng ghi . 
+
+-------------------------------------------------------
+
+<?php
+
+namespace Database\Factories;
+
+use App\Models\Category; // Thay đổi 'App\Models\Category' thành namespace của mô hình Category nếu cần thiết
+use Illuminate\Database\Eloquent\Factories\Factory;
+
+class CategoryFactory extends Factory
+{
+    protected $model = Category::class;
+
+    public function definition()
+    {
+        return [
+            'name' => $this->faker->unique()->randomElement([
+                'Sức khỏe răng miệng',
+                'Dược liệu',
+                'Tâm lý - Tâm thần',
+                'Thể dục thể thao',
+                'Lão hóa lành mạnh',
+                'Thói quen lành mạnh',
+                'Ăn uống lành mạnh',
+                'Ung thư - Ung bướu',
+                'Bệnh về não & hệ thần kinh',
+                'Bệnh truyền nhiễm',
+                'Bệnh tiêu hóa',
+                'Bệnh về máu',
+                'Sức khỏe tình dục',
+                'Da liễu',
+                'Dị ứng',
+                'Chăm sóc giấc ngủ',
+                'Bệnh tai mũi họng',
+                'Bệnh cơ xương khớp',
+                'Bệnh thận và Đường tiết niệu',
+                'Bệnh hô hấp',
+                'Bệnh tim mạch',
+                'Tiểu đường',
+                'Sức khỏe mắt',
+                'Thuốc và thực phẩm chức năng',
+                'Mang thai',
+                'Sức khỏe phụ nữ',
+                'Sức khỏe',
+                'Sức khỏe nam giới',
+                'Nuôi dạy con',
+            ]),
+            'thumbnail' => 'storage/image/thumbnail/category.png',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ];
+    }
+}
+
+
+> php artisan tinker Category::factory()->count(50)->create();
+
++ Giải thích : 'name' => $this->faker->unique()->randomElement([
+    => Lấy ngẫu nhiên nhưng không được trùng lại . Nếu trùng lại nó sẽ lấy cái khác . 
+
+-------------------------------------------------------
+Ta có thể chạy file seeder bằng lệnh seeder 
+Hoặc tạo file factory rồi chạy lệnh 
+
+> php artisan tinker
+Sau đó nhập lệnh này trong môi trường tinker : factory(App\Category::class)->create();
+
+
+Nói thêm : Thật ra bản chất của file seeder là để cho mình chạy lệnh thôi , trong đó vẫn dùng Model 
+rồi hàm create của Model các thứ để chạy hoặc update dữ liệu , về cơ bản thì nó như là file controller, 
+service,.. nhưng chỉ khác là nó có lệnh để chạy thôi . 
+
++ Một lưu ý nữa là , hàm tạo ảnh bằng $faker thì có cái được , có cái không , nên khi tạo ảnh 
+để cho chắc thì dùng while để đến khi nào nó tạo được ảnh thì mới thôi . 
+
+-------------------------------------------------------
+
+Thêm Middleware Role 
+> php artisan make:middleware CheckAdminRole
+
++ docker-compose-laravel\src\app\Http\Middleware\CheckAdminRole.php : 
+        <?php
+
+        namespace App\Http\Middleware;
+
+        use Closure;
+        use Illuminate\Support\Facades\Auth;
+
+        class CheckAdminRole
+        {
+            public function handle($request, Closure $next, ...$roles)
+            {
+                $admin = Auth::user();
+
+                if (!$admin) {
+                    return response('Unauthorized', 401);
+                    return response()->json(['status' => 'Unauthorized'], 401);
+                }
+
+                // Kiểm tra xem người dùng có vai trò nằm trong danh sách $roles không
+                if (in_array($admin->role, $roles)) {
+                    return $next($request);
+                }
+
+                return response()->json(['status' => 'Forbidden'], 403);
+            }
+        }
+
++ docker-compose-laravel\src\app\Http\Kernel.php : 
+        protected $routeMiddleware = [
+            'auth' => \App\Http\Middleware\Authenticate::class,
+            'role' => \App\Http\Middleware\CheckUserRole::class,     <== thêm dòng này vào 
+            'auth.basic' => \Illuminate\Auth\Middleware\AuthenticateWithBasicAuth::class,
+            'cache.headers' => \Illuminate\Http\Middleware\SetCacheHeaders::class,
+            'can' => \Illuminate\Auth\Middleware\Authorize::class,
+            'guest' => \App\Http\Middleware\RedirectIfAuthenticated::class,
+            'password.confirm' => \Illuminate\Auth\Middleware\RequirePassword::class,
+            'signed' => \Illuminate\Routing\Middleware\ValidateSignature::class,
+            'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
+            'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
+        ];
+
+
++ Thêm vào api.php : 
+
+    Route::prefix('infor-user')->controller(InforUserController::class)->group(function () {
+        Route::middleware(['auth:user_api','role:user'])->group(function () { <== 
+            Route::get('test_midle', 'test_midle');
+        });
+    });
+
+    // Hospital Infor  
+    Route::prefix('infor-hospital')->controller(InforHospitalController::class)->group(function () {
+        Route::middleware(['auth:user_api','role:hospital'])->group(function () { <== 
+            Route::get('test_midle2', 'test_midle2');
+        });
+    });
+
++ Ở đây ta có thể thêm một danh sách role thay vì chỉ một cái : 
+    Route::middleware(['auth:user_api', 'role:doctor,hospital'])->group(function () { <== 
+        // Các route cho bác sĩ (role: doctor) và bệnh viện (role: hospital)
+    });
+
+-------------------------------------------------------
+
+[Quan trọng] : 
+Các cách để tạo một ảnh fake trong Controller : 
+    Cách 1 : Dùng chính faker của factory 
+        + Ưu điểm : Tạo ra các ảnh có dung lượng thấp 
+        + Hạn chế : Ảnh chứa chữ và màu đơn giản , xấu 
+
+        + B1 : Code hàm tạo ảnh vào factory 
+            docker-compose-laravel\src\database\factories\FakeImageFactory.php : 
+                public function createAvatarDoctor()
+                {
+                    $pathFolder = 'storage/image/avatars/doctors';
+                    if (!File::exists($pathFolder)) {
+                        File::makeDirectory($pathFolder, 0755, true);
+                    }
+                    $nameImage = $this->faker->image($pathFolder, 200, 200, null, false);
+                    return $nameImage;
+                }
+
+        + B2 : Gọi ra ở controller 
+            public function addDoctor(RequestCreateNewDoctor $request) {
+                ...
+
+                $fakeImageFactory = FakeImageFactory::new();
+                $avatar = $fakeImageFactory->createAvatarDoctor();
+                while (!$avatar) {
+                    $avatar = $fakeImageFactory->createAvatarDoctor();
+                }
+                $avatar = 'storage/image/avatars/doctors/' . $avatar;
+                
+                ...
+            }
+
+    + Cách 2 : Dùng "guzzlehttp/guzzle": "^7.8"
+        + Ưu điểm : Ảnh đẹp 
+        + Nhược điểm : Dung lượng cao , phụ thuộc vào ảnh của bên thứ 3 (lỡ họ xóa web của họ đi thì hết dùng) 
+
+        + B1 : docker-compose run --rm composer require guzzlehttp/guzzle
+        + B2 : 
+
+            use GuzzleHttp\Client;
+            public function addDoctor(RequestCreateNewDoctor $request) {
+                ...
+
+                try {
+                    $pathFolder = 'storage/image/avatars/doctors';
+                    if (!File::exists($pathFolder)) {
+                        File::makeDirectory($pathFolder, 0755, true);
+                    }
+                    $client = new Client();
+                    $response = $client->get('https://picsum.photos/200/200');
+                    $imageContent = $response->getBody()->getContents();
+                    $pathFolder = 'storage/image/avatars/doctors/';
+                    $nameImage = uniqid() . '.jpg';
+                    $avatar = $pathFolder . $nameImage;
+                    file_put_contents($avatar, $imageContent);
+                } catch (\Exception $e) {
+                    $avatar = null;
+                }
+                
+                ...
+            }
+
+-------------------------------------------------------
+[QUAN TRỌNG]
+Nếu truyền vào 
+
+{
+    "id_hospital_department" : 5,
+    "name" : "Tư vấn tâm lí PRO VIP",
+    "time_advise" : 30,
+    "price" : 1500000,
+    "infor" : {"id":2,"email":"vanmanh.dut@gmail.com","name":"Nguyễn Văn Mạnh","date_of_birth":"2001-08-29","address":"Phú Đa - Phú Vang - Thừa Thiên Huế","phone":"0971404372","gender":1,"avatar":"storage/image/avatars/admins/04936c087b02f1a1d122484c74d287c1.png","role":"manager","token_verify_email":null,"email_verified_at":"2023-09-24T17:01:49.000000Z","created_at":"2023-09-24T17:01:49.000000Z","updated_at":"2023-09-24T17:01:49.000000Z","access_token":"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOlwvXC9sb2NhbGhvc3Q6OTlcL2FwaVwvYWRtaW5cL2xvZ2luIiwiaWF0IjoxNjk1NjI1NTE1LCJleHAiOjE2OTU2MjkxMTUsIm5iZiI6MTY5NTYyNTUxNSwianRpIjoid3hHUWNZQU1kQ2R2bWJJeSIsInN1YiI6MiwicHJ2IjoiZGY4ODNkYjk3YmQwNWVmOGZmODUwODJkNjg2YzQ1ZTgzMmU1OTNhOSJ9.ZavYqorVTd2KgIQEjIBJF1iepILgjFclcZBZD998-_I"}
+}
+
+=> rule của nó sẽ là : 
+public function rules()
+{
+    return [ 
+        'id_hospital_department' => 'required|integer',
+        'name' => 'required|string',
+        'time_advise' => 'required|integer',
+        'price' => 'required|numeric', 
+        'infor' => 'required|array',   (chú ý đây là rule array chứ không phải là JSON hay Object)
+    ];
+}
+
+=> Lưu dữ liệu vào database là kiểu json nhưng khi submit lên phải là array 
+Vì trong controller mình có encode nó ra , và khi trả về mình có decode cho nó . 
+
+Trong database nó sẽ lưu như sau : 
+    {"id": 2, "name": "Nguyễn Văn Mạnh", "role": "manager", "email": "vanmanh.dut@gmail.com", "phone": "0971404372", "avatar": "storage/image/avatars/admins/04936c087b02f1a1d122484c74d287c1.png", "gender": 1, "address": "Phú Đa - Phú Vang - Thừa Thiên Huế", "created_at": "2023-09-24T17:01:49.000000Z", "updated_at": "2023-09-24T17:01:49.000000Z", "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOlwvXC9sb2NhbGhvc3Q6OTlcL2FwaVwvYWRtaW5cL2xvZ2luIiwiaWF0IjoxNjk1NjI1NTE1LCJleHAiOjE2OTU2MjkxMTUsIm5iZiI6MTY5NTYyNTUxNSwianRpIjoid3hHUWNZQU1kQ2R2bWJJeSIsInN1YiI6MiwicHJ2IjoiZGY4ODNkYjk3YmQwNWVmOGZmODUwODJkNjg2YzQ1ZTgzMmU1OTNhOSJ9.ZavYqorVTd2KgIQEjIBJF1iepILgjFclcZBZD998-_I", "date_of_birth": "2001-08-29", "email_verified_at": "2023-09-24T17:01:49.000000Z", "token_verify_email": null}
+    => Cũng giống như khi submit . 
+
+Controller : 
+public function add(RequestCreateHospitalService $request){
+    $user = auth()->guard('user_api')->user();
+    $hospitalDepartment = HospitalDepartment::where('id',$request->id_hospital_department)
+    ->where('id_hospital', $user->id)->first();
+    if(empty($hospitalDepartment)) return response()->json(['message' => 'Không tìm thấy khoa trong bệnh viện !',], 404);
+    
+    $request->merge(['infor' => json_encode($request->infor)]);  <== lưu vào thì encode 
+    $hospitalService = HospitalService::create($request->all());
+    
+    $hospitalService->infor = json_decode($hospitalService->infor);  <== trả về cho client thì decode 
+    return response()->json([
+        'message' => 'Thêm dịch vụ cho bệnh viện thành công ! ',
+        'hospital_service' => $hospitalService
+    ], 201);
+}
+
+Mặc dù trong database nhìn nó lưu như khi submit lên (cấu trúc đẹp vậy) nhưng mà nếu ta không decode thì 
+trả về nhìn sẽ khác . 
+Mặc khác khi submit lên mà ta không encode thì không lưu vào được . 
+
+Lưu ý : 
+    + Trong Postman khi submit dữ liệu thì chỉ bên raw JSON thì mới upload lên kiểu json được , 
+    còn bên form-data thì nó không nhận 
+
+-------------------------------------------------------
+200 = Xử lí OK 
+201 = Xử lí OK + Tạo OK 
+(Khác nhau là request có yêu cầu tạo thì là 201 , còn không yêu cầu tạo gì , chỉ get hoặc xử lí thôi thì 200)
+
+Mã trạng thái HTTP 200 và 201 là hai mã khác nhau về ý nghĩa và mục đích sử dụng trong giao thức HTTP:
+HTTP 200 OK: Mã trạng thái 200 OK thông báo rằng yêu cầu của client đã được xử lý thành công. Nó thường được sử dụng khi một yêu cầu HTTP đã được thực hiện thành công và kết quả được trả về. Ví dụ, khi bạn truy cập một trang web và trình duyệt nhận được phản hồi thành công từ máy chủ, mã trạng thái 200 OK sẽ được trả về.
+HTTP 201 Created: Mã trạng thái 201 Created được sử dụng để thông báo rằng yêu cầu của client đã được xử lý thành công và đã tạo thành công một tài nguyên mới. Thường được sử dụng trong ngữ cảnh RESTful API khi một tài nguyên mới được tạo dựa trên dữ liệu mà client đã gửi. Thông thường, máy chủ sẽ trả về mã 201 kèm theo thông tin về tài nguyên mới được tạo và địa chỉ URL để truy cập tài nguyên này.
+Ví dụ về sử dụng mã trạng thái 201:
+Khi bạn gửi một POST yêu cầu để tạo một bài viết trên một blog, và máy chủ tạo thành công bài viết đó, nó có thể trả về mã trạng thái 201 Created kèm theo thông tin về bài viết mới và URL để truy cập nó.
+Tóm lại, mã trạng thái 200 OK nói về sự thành công của một yêu cầu tồn tại, trong khi mã trạng thái 201 Created nói về việc thành công trong việc tạo ra một tài nguyên mới.
+-------------------------------------------------------
+<?php
+
+namespace App\Repositories;
+
+use App\Models\Admin;
+use Exception;
+use Illuminate\Support\Facades\DB;
+
+class AdminRepository extends BaseRepository implements AdminInterface
+{
+    public function getModel()
+    {
+        return Admin::class;
+    }
+
+    /**
+     * getAllAdmin
+     *
+     * @return array
+     */
+    public function getAllAdmin($input)
+    {
+        return $this->model->where(function ($query) use ($input) {
+            $query->where('name', 'like', '%' . $input->search . '%')
+                ->orWhere('email', 'like', '%' . $input->search . '%');
+        })
+            ->where('role', 'like', '%' . $input->role . '%');
+    }
+
+    /**
+     * addAdmin
+     *
+     * @param $admin
+     */
+    public function addAdmin($admin)
+    {
+        DB::beginTransaction();
+        try {
+            $newAdmin = $this->model->create([
+                'name' => $admin->name,
+                'email' => $admin->email,
+                'role' => 0,
+                'avatar' => 'storage/Blog/image/avatars/admin.png',
+                'password' => $admin->password,
+            ]);
+            DB::commit();
+
+            return $newAdmin;
+        } catch (Exception $e) {
+            DB::rollback();
+            throw $e;
+        }
+    }
+
+    /**
+     * changeRole
+     *
+     * @param object $filter
+     */
+    public function changeRole($input)
+    {
+        DB::beginTransaction();
+        try {
+            $admin = $this->model->find($input->id);
+            $updateData = [
+                'role' => $input->role,
+            ];
+            $admin->update($updateData);
+            DB::commit();
+        } catch (Exception $e) {
+            DB::rollback();
+            throw $e;
+        }
+    }
+
+    public function getAdminById($id)
+    {
+        return $this->model
+            ->when($id, fn ($q) => $q->where('id', '=', $id))
+            ->first();
+    }
+
+    public function ajaxSearchInforAdmin($input)
+    {
+        return $this->model->where(function ($query) use ($input) {
+            $query->where('name', 'like', '%' . $input->search . '%')
+                ->orWhere('email', 'like', '%' . $input->search . '%');
+        })
+            ->where('role', 'like', '%' . $input->role . '%');
+    }
+
+    /**
+     * findUserById
+     *
+     * @param int $id
+     * @return object
+     */
+    public function findAdminById($id)
+    {
+        return $this->model->find($id);
+    }
+
+    /**
+     * updateInfor
+     *
+     * @param object $user
+     * @param object $filter
+     */
+    public function updateInfor($admin, $filter)
+    {
+        DB::beginTransaction();
+        try {
+            $admin = $this->model->find($admin->id);
+            $updateData = [
+                'name' => $filter->name,
+                'avatar' => $filter->avatar ?? $admin->avatar,
+            ];
+            $admin->update($updateData);
+            DB::commit();
+        } catch (Exception $e) {
+            DB::rollback();
+            throw $e;
+        }
+    }
+
+    /**
+     * updatePassword
+     *
+     * @param object $admin
+     * @param srting $password
+     */
+    public function updatePassword($admin, $password)
+    {
+        DB::beginTransaction();
+        try {
+            $user = $this->model->find($admin->id);
+            $updateData = ['password' => $password];
+            $user->update($updateData);
+            DB::commit();
+        } catch (Exception $e) {
+            DB::rollback();
+            throw $e;
+        }
+    }
+
+    /**
+     * findAdminbyEmail
+     *
+     * @param string $email
+     * @return object
+     */
+    public function findAdminbyEmail($email)
+    {
+        return $this->model
+            ->when($email, fn ($q) => $q->where('email', '=', $email))
+            ->first();
+    }
+
+    /**
+     * getAllAdminStatic
+     *
+     * @return array
+     */
+    public static function getAllAdminStatic()
+    {
+        return (new self)->model->all();
+    }
+}
+
+-------------------------------------------------------
+public function updateAdmin($id, $data)
+{
+    DB::beginTransaction();
+    try {
+        $admin = $this->model->find($id);
+        $admin->update($data);  <== muốn lấy lại được biến admin thì phải tách ra như say 
+        // không được gộp vào 
+        DB::commit();
+        return $admin;
+    } catch (Exception $e) {
+        DB::rollback();
+        throw $e;
+    }
+}
+-------------------------------------------------------
+[Quan trọng]
+Để cho Client có thể Post dữ liệu lớn lên API thì 
+Ta thêm vào cho file : docker-compose-laravel\dockerfiles\nginx\default.conf : 
+
+            server {
+                listen 80;
+                index index.php index.html;
+                server_name _;
+                root /var/www/html/public;
+
+                client_max_body_size 100M; 
+
+                location / {
+                    try_files $uri $uri/ /index.php?$query_string;
+                }
+
+                location ~ \.php$ {
+                    try_files $uri =404;
+                    fastcgi_split_path_info ^(.+\.php)(/.+)$;
+                    fastcgi_pass php:9000;
+                    fastcgi_index index.php;
+                    include fastcgi_params;
+                    fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+                    fastcgi_param PATH_INFO $fastcgi_path_info;
+                    fastcgi_param PHP_VALUE "post_max_size=100M\nupload_max_filesize=100M";  <== 
+                }
+            }
+
+-------------------------------------------------------
+public function addDoctor(RequestCreateNewDoctor $request)
+{
+    DB::beginTransaction();  <<<== begin 
+    try {
+        $department = DepartmentRepository::findById($request->id_department);
+        if (empty($department)) {
+            return response()->json([
+                'message' => 'Không tìm thấy khoa !',
+            ], 404);
+        }
+        $hospital = UserRepository::findUserById(auth('user_api')->user()->id);
+
+        $avatar = null;
+        $pathFolder = 'storage/image/avatars/doctors';
+        if (!File::exists($pathFolder)) {
+            File::makeDirectory($pathFolder, 0755, true);
+        }
+        $client = new Client;
+        while (true) {
+            try {
+                $response = $client->get('https://picsum.photos/200/200');
+                $imageContent = $response->getBody()->getContents();
+                $pathFolder = 'storage/image/avatars/doctors/';
+                $nameImage = uniqid() . '.jpg';
+                $avatar = $pathFolder . $nameImage;
+                file_put_contents($avatar, $imageContent);
+                if (file_exists($avatar)) {
+                    break;
+                }
+            } catch (Throwable $e) {
+            }
+        }
+
+        $new_password = Str::random(10);
+        $data = [
+            'email' => $request->email,
+            'password' => Hash::make($new_password),
+            'name' => $request->name,
+            'avatar' => $avatar,
+            'is_accept' => true,
+            'role' => 'doctor',
+            'token_verify_email' => null,
+            'email_verified_at' => now(),
+        ];
+        $doctor = UserRepository::createUser($data);
+
+        $data = [
+            'id_doctor' => $doctor->id,
+            'id_department' => $request->id_department,
+            'id_hospital' => $hospital->id,
+            'is_confirm' => true,
+            'province_code' => $request->province_code,
+        ];
+        $inforDoctor = InforDoctorRepository::createDoctor($data);
+
+        $content = 'Dưới đây là thông tin tài khoản của bạn , hãy sử dụng nó để đăng nhập vào hệ thống , sau đó hãy tiến hành đổi mật khẩu để đảm bảo tính bảo mật cho tài khoản . <br> email: ' . $doctor->email . ' <br> password: ' . $new_password;
+        Queue::push(new SendMailNotify($doctor->email, $content));
+
+        DB::commit();  <<<== để trước lệnh return cuối cùng 
+        return response()->json([
+            'message' => 'Thêm tài khoản bác sĩ thành công !',
+            'hospital' => array_merge($doctor->toArray(), $inforDoctor->toArray()),
+
+        ], 200);
+    } catch (Throwable $e) {
+        DB::rollback(); <<<== rollback 
+        return response()->json(['message' => $e->getMessage()], 400);
+    }
+}
+
+=> Thêm Transaction() vào cho đoạn code , bọc đoạn code đó lại thì nếu như chỉ cần có một lỗi bất kì nào đó 
+xảy ra thì toàn bộ các câu lệnh sql trong đó sẽ không được thực hiện . 
+=> Đảm bảo không xảy ra chuyện có lệnh chạy được , còn lệnh khác lại không chạy . 
+Ví dụ thêm thông tin user doctor vào rồi nhưng lại không thêm infor doctor tương ứng cho user doctor đó 
+do lỗi không tìm thấy khoa . Nếu không tìm thấy khoa hoặc xảy ra bất cứ lỗi gì , thì không có lệnh sql nào được 
+thực hiện , đồng nghĩa với việc , không thêm user doctor cũng không thêm infor doctor . 
+
+-------------------------------------------------------
+Dưới đây là danh sách toàn bộ các mã trạng thái HTTP theo tiêu chuẩn HTTP/1.1:
+
+1xx (Thông tin):
+    100: Continue
+    101: Switching Protocols
+    102: Processing (WebDAV)
+
+2xx (Thành công):
+    200: OK
+    201: Created
+    202: Accepted
+    203: Non-Authoritative Information
+    204: No Content
+    205: Reset Content
+    206: Partial Content
+    207: Multi-Status (WebDAV)
+    208: Already Reported (WebDAV)
+    226: IM Used
+
+3xx (Chuyển hướng):
+    300: Multiple Choices
+    301: Moved Permanently
+    302: Found (Moved Temporarily)
+    303: See Other
+    304: Not Modified
+    305: Use Proxy
+    306: (Reserved)
+    307: Temporary Redirect
+    308: Permanent Redirect
+
+4xx (Lỗi từ phía client):
+    400: Bad Request
+    401: Unauthorized
+    402: Payment Required
+    403: Forbidden
+    404: Not Found
+    405: Method Not Allowed
+    406: Not Acceptable
+    407: Proxy Authentication Required
+    408: Request Timeout
+    409: Conflict
+    410: Gone
+    411: Length Required
+    412: Precondition Failed
+    413: Payload Too Large
+    414: URI Too Long
+    415: Unsupported Media Type
+    416: Range Not Satisfiable
+    417: Expectation Failed
+    418: I'm a teapot (RFC 2324)
+    421: Misdirected Request
+    422: Unprocessable Entity (WebDAV)
+    423: Locked (WebDAV)
+    424: Failed Dependency (WebDAV)
+    426: Upgrade Required
+    428: Precondition Required
+    429: Too Many Requests
+    431: Request Header Fields Too Large
+    451: Unavailable For Legal Reasons
+
+5xx (Lỗi từ phía server):
+    500: Internal Server Error
+    501: Not Implemented
+    502: Bad Gateway
+    503: Service Unavailable
+    504: Gateway Timeout
+    505: HTTP Version Not Supported
+    506: Variant Also Negotiates
+    507: Insufficient Storage (WebDAV)
+    508: Loop Detected (WebDAV)
+    510: Not Extended
+    511: Network Authentication Required
+    
+Đây là danh sách toàn bộ các mã trạng thái HTTP theo tiêu chuẩn HTTP/1.1. Mỗi mã trạng thái có ý nghĩa và mục đích sử dụng riêng biệt trong giao tiếp mạng.
+-------------------------------------------------------
+Đúng, ttl (Time To Live) và refresh_ttl (Refresh Time To Live) là hai khái niệm khác nhau trong việc quản lý JWT (JSON Web Tokens) trong Laravel và các hệ thống xác thực dựa trên JWT. Dưới đây là sự khác biệt giữa chúng:
+
+TTL (Time To Live):
+
+ttl là thời gian sống của JWT tính bằng giây. Nó xác định thời gian mà JWT sẽ hợp lệ kể từ khi nó được tạo ra hoặc phát hành.
+Khi JWT hết hạn (exp claim), nó không thể được sử dụng nữa và bạn cần phải tạo JWT mới.
+Refresh TTL (Refresh Time To Live):
+
+refresh_ttl là thời gian sống cho quá trình làm mới (refresh) JWT, cũng tính bằng giây. Nó xác định thời gian mà người dùng có thể sử dụng JWT để yêu cầu một JWT mới sau khi JWT hiện tại đã hết hạn.
+Khi JWT đã hết hạn, người dùng có thể sử dụng nó để thực hiện một yêu cầu làm mới và nhận lại một JWT mới với ttl mới. Điều này giúp tránh việc người dùng phải đăng nhập lại hoặc yêu cầu mới sau mỗi lần hết hạn.
+Ví dụ: Nếu bạn đặt ttl là 60 phút và refresh_ttl là 20160 phút, thì JWT sẽ hết hạn sau 60 phút kể từ khi nó được tạo ra. Tuy nhiên, sau khi JWT hết hạn, người dùng vẫn có 20160 phút để sử dụng nó để làm mới JWT mà không cần phải đăng nhập lại.
+
+Sử dụng cả hai thời gian sống này cho phép bạn quản lý việc xác thực và đảm bảo tính bảo mật trong hệ thống của mình.
+
+Tóm lại : TTL là thời gian để sử dụng token đó để tạo một token mới mà không cần phải thông qua đăng nhập . 
+Còn refresh_ttl là thời gian sống cho quá trình làm mới , quá thời gian này thì dùng TTL cũ để tạo TTL mới không được nữa 
+mà phải tự đăng nhập . 
+
+-------------------------------------------------------
+Vào file : C:\Users\ADMIN\Downloads\PBL6\docker-compose-laravel\src\config\jwt.php 
+=> Để chỉnh sửa thời gian sống của token 
++ Tham khảo : https://stackoverflow.com/questions/41141063/set-expiry-time-for-laravel-jwt-dynamically
+
+
+-------------------------------------------------------
+Chú ý : Câu lệnh SelectRaw phải là một chuỗi chứ không phải là một mảng : 
+$data = (new self)->model->selectRaw(
+    'hospital_services.*, hospital_departments.*,
+    hospital_services.id as id_hospital_service, 
+    hospital_departments.id as id_hospital_departments,
+    hospital_services.time_advise as time_advise_hospital_service, 
+    hospital_departments.time_advise as time_advise_hospital_departments,
+    hospital_services.price as price_hospital_service, 
+    hospital_departments.price as price_hospital_departments',
+    )
+
+Chứ không phải : 
+->selectRaw(
+    'hospital_services.id as id_hospital_service',
+    'hospital_departments.id as id_hospital_departments',
+    'hospital_services.time_advise as time_advise_hospital_service',
+    'hospital_departments.time_advise as time_advise_hospital_departments',
+    'hospital_services.price as price_hospital_service',
+    'hospital_departments.price as price_hospital_departments'
+    ...
+)
+-------------------------------------------------------
+Mấy chỗ search mà : 
+    + không gửi paginate vào request 
+    + hoặc gửi vào paginate:null
+    + hoặc gửi vào paginate:0
+    + hoặc gửi vào paginate: "" => như này cũng đồng nghĩa với biến này null (lên server in ra sẽ thấy nó là gía trị null)
+    => thì nó lấy tất cả
+Còn các trường hợp còn lại đều phân trang cho mình 
+ 
+-------------------------------------------------------
+Khác với Search toàn bộ user , user chỉ có role : user, doctor , hospital hoàn toàn khác nhau 
+Còn admin có : admin , superadmin , manager . Điều đặc biệt là superadmin chứa từ admin 
+Nên ta không dùng : 
+    ->when(!empty($filter->role), function ($query) use ($filter) {
+        return $query->where('role', 'LIKE', '%' . $filter->role . '%');  <= trước và sau đều có kí tự 
+    })
+
+Mà phải là : 
+    ->when(!empty($filter->role), function ($query) use ($filter) {
+        return $query->where('role', 'LIKE', $filter->role . '%');  <= trước không có kí tự và sau mới có . 
+    })
+
+=> Điều này giúp cho khi mình search : role : 'admin'
+=> Thì phía trước không có kí tự nên nó sẽ loại superadmin ra . 
+
+=> Còn search : role : '' => trống thì tất nhiên nó sẽ lấy hết . 
+
+Cách 2 : 
+=> Dùng Bằng luôn 
+->when(!empty($filter->role), function ($query) use ($filter) {
+    return $query->where('role', $filter->role );  
+})
+
+Ta chỉ cần check 
+$filter = (object) [
+    'search' => $search,
+    'role' => $request->role <= nếu chỉ cần là : "" hoặc "0" hoặc 0 hoặc false => thì nó sẽ mặc định là null 
+    'orderBy' => $orderBy, 
+    'orderDirection' => $orderDirection,
+];
+
+Nếu null thì nó sẽ bỏ qua lệnh này : 
+->when(!empty($filter->role), function ($query) use ($filter) {
+    return $query->where('role', $filter->role );  
+})
+
+Như vậy nếu dùng Bằng thì thậm chí ta không cần check gì cả . 
+
+Lưu ý : Vì chỉ cần là : "" hoặc "0" hoặc 0 hoặc false => thì nó sẽ mặc định là null
+Nên khi search "is_accept": "0", thì truyền vào như này nó cũng sẽ là null nên cầu lệnh query cũng không được 
+thực hiện nên phải tìm cách khác . 
+
+-------------------------------------------------------
+migrate:
+    Mục tiêu: Tạo các bảng và cấu trúc cơ sở dữ liệu mới dựa trên các tệp migration.
+    Công dụng: Sử dụng khi bạn muốn triển khai các thay đổi cơ sở dữ liệu mới sau khi bạn đã tạo hoặc chỉnh sửa các tệp migration.
+
+migrate:rollback:
+    Mục tiêu: Hoàn tác (rollback) tệp migration cuối cùng đã thực thi.
+    Công dụng: Sử dụng khi bạn muốn hoàn tác các thay đổi cơ sở dữ liệu gần nhất.
+
+migrate:reset:
+    Mục tiêu: Hoàn tác (rollback) tất cả các tệp migration đã thực thi.
+    Công dụng: Sử dụng khi bạn muốn hoàn tác toàn bộ cơ sở dữ liệu và bảng đã tạo bởi migration.
+
+migrate:refresh:
+    Mục tiêu: Hoàn tác (rollback) và sau đó chạy lại tất cả các tệp migration.
+    Công dụng: Sử dụng khi bạn muốn làm mới cơ sở dữ liệu, đảm bảo rằng nó sẽ ở trong trạng thái ban đầu hoặc theo định nghĩa trong các tệp migration.
+
+migrate:status:
+    Mục tiêu: Hiển thị trạng thái của các tệp migration.
+    Công dụng: Sử dụng để kiểm tra xem các tệp migration đã được thực thi hay chưa, và trạng thái của từng tệp migration.
+
+migrate:fresh:
+    Mục tiêu: Hoàn tác (rollback) toàn bộ cơ sở dữ liệu và sau đó tạo lại tất cả các bảng và cấu trúc cơ sở dữ liệu.
+    Công dụng: Sử dụng khi bạn muốn xóa toàn bộ dữ liệu và bảng, sau đó tạo lại chúng.
+
+migrate:install:
+    Mục tiêu: Tạo bảng migrations để theo dõi trạng thái của các tệp migration.
+    Công dụng: Sử dụng khi bạn muốn bắt đầu sử dụng hệ thống quản lý migration trong một dự án Laravel mới.
+
+migrate:make (hoặc make:migration):
+    Mục tiêu: Tạo một tệp migration mới.
+    Công dụng: Sử dụng khi bạn muốn tạo một tệp migration mới để thêm hoặc sửa đổi cấu trúc cơ sở dữ liệu.
+
+Chỉnh sửa bảng mà không muốn mất dữ liệu thì chỉ có 1 cách đó là tạo ra file mới rồi chạy file đó 
+Còn nếu muốn chỉ một file thì dùng rollback file đó sau đó migrate file đó lại thì sẽ được , nhưng mất dữ liệu . 
+
+-------------------------------------------------------
+Để validate dữ liệu trong Laravel theo các yêu cầu bạn đã mô tả, bạn có thể sử dụng các quy tắc validation được xây dựng sẵn trong Laravel. Đối với trường hợp này, bạn có thể sử dụng một tùy chỉnh rule validation để kiểm tra thời gian có đúng theo yêu cầu của bạn hay không. Dưới đây là cách bạn có thể làm điều đó:
+
+Tạo một tùy chỉnh rule validation trong Laravel. Bạn có thể làm điều này bằng cách tạo một custom validation rule trong file app/Providers/AppServiceProvider.php. Đảm bảo bạn đã import các class cần thiết ở đầu file:
+php
+Copy code
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
+Sau đó, trong hàm boot() của AppServiceProvider, thêm rule validation tùy chỉnh:
+
+php
+Copy code
+Validator::extend('valid_time_range', function ($attribute, $value, $parameters, $validator) {
+    $startTime = strtotime($value[0]);
+    $endTime = strtotime($value[1]);
+
+    if ($startTime === false || $endTime === false) {
+        return false; // Thời gian không hợp lệ
+    }
+
+    // Kiểm tra thời gian theo yêu cầu của bạn
+    if ($startTime >= $endTime || $startTime < 0 || $endTime > 86400) {
+        return false;
+    }
+
+    return true;
+});
+Sau đó, bạn có thể sử dụng rule validation tùy chỉnh này trong tập tin validation rules của mình 
+(thường là trong file resources/lang/en/validation.php):
+php
+Copy code
+'custom' => [
+    'times.*.*.time' => [
+        'valid_time_range' => 'The :attribute field is not a valid time range.',
+    ],
+],
+Cuối cùng, áp dụng rule validation trong luồng xử lý validation của bạn. Ví dụ, nếu bạn đang sử dụng Request để validate dữ liệu:
+php
+Copy code
+public function rules()
+{
+    return [
+        'times.*.*.time' => 'required|array|size:2|valid_time_range',
+        // Các rule khác cho các trường khác
+    ];
+}
+Như vậy, bạn đã tạo một rule validation tùy chỉnh để kiểm tra thời gian trong mảng của bạn, đảm bảo rằng thời gian phải nằm trong khoảng từ 0:00 đến 24:00 và phần tử đầu tiên nhỏ hơn phần tử thứ hai.
+-------------------------------------------------------
+{/* cách hiển thị html trong reactjs */}
+{/* <div dangerouslySetInnerHTML={{ __html: content }} /> */}
+{/* như này là hiển thị text */}
+{/* {content} */}
+
+-------------------------------------------------------
+Tùy biến thông báo lỗi 500 và lỗi 404 
+    + Lỗi 500 là lỗi khi mà có lỗi gì đó ở server
+    + Lỗi 404 là lỗi không tìm thấy route api hoặc route web 
+
+Code : 
+                <?php
+
+                namespace App\Exceptions;
+
+                use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
+                use Throwable;
+                use Illuminate\Http\Response;
+                use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+                use Symfony\Component\HttpKernel\Exception\HttpException;
+
+                class Handler extends ExceptionHandler
+                {
+                    /**
+                    * A list of the exception types that are not reported.
+                    *
+                    * @var array<int, class-string<Throwable>>
+                    */
+                    protected $dontReport = [
+                        //
+                    ];
+
+                    /**
+                    * A list of the inputs that are never flashed for validation exceptions.
+                    *
+                    * @var array<int, string>
+                    */
+                    protected $dontFlash = [
+                        'current_password',
+                        'password',
+                        'password_confirmation',
+                    ];
+
+                    /**
+                    * Register the exception handling callbacks for the application.
+                    *
+                    * @return void
+                    */
+                    public function register()
+                    {
+                        $this->reportable(function (Throwable $e) {
+                            //
+                        });
+                    }
+
+                    public function render($request, Throwable $exception)
+                    {
+                        if ($exception instanceof NotFoundHttpException) {   // lỗi 404 
+                            return response()->json([
+                                'message' => 'API not found !',
+                            ], Response::HTTP_NOT_FOUND);
+                        }
+                    
+                        return response()->json([ // còn lại cứ cho vào lỗi 500 
+                            'message' => 'Internal Server Error !',
+                        ], Response::HTTP_INTERNAL_SERVER_ERROR);
+                    }
+
+                }
+
+-------------------------------------------------------
+$search = $request->search;
+$orderBy = 'users.id';
+$orderDirection = 'ASC';
+
+if ($request->sortlatest == 'true') {
+    $orderBy = 'users.id';
+    $orderDirection = 'DESC';
+}
+
+if ($request->sortname == 'true') {
+    $orderBy = 'users.name';
+    $orderDirection = ($request->sortlatest == 'true') ? 'DESC' : 'ASC';
+}
+=> mấy chỗ nào orderBy rồi search các kiểu này hêt sức lưu ý . 
+
+Vì khi join thêm bảng khác mà ở service vẫn truyền về 
+
+$orderBy = 'id';
+$orderBy = 'name';
+
+các kiểu thì sẽ gây lỗi . 
+=> ngay từ ban đầu nên code đầy đủ cho nó là cả tên bảng nữa (dù là một bảng)
+để tương lai nếu có join thêm các bảng khác thì không ảnh hưởng đến code cũ 
+
+$orderBy = 'id';
+=> join thêm bảng khác thì phải sửa lại toàn bộ code phải có thêm tên bảng .
+=> ngay từ đầu nên có tên bảng luôn 
+-------------------------------------------------------
+Nếu lỡ git add . 
+Thì dùng lệnh : git reset => để hoàn tác lại 
+-------------------------------------------------------
+$today = Carbon::now();  <== Ở laravel 9 thì không cần dùng Carbon cũng được . Carbon::now(); hay now(); đều như nhau 
+$firstDayOfWeek = $today->startOfWeek();
+$weekDays = [];
+for ($i = 0; $i < 7; $i++) {
+    $weekDays[] = $firstDayOfWeek->copy()->addDays($i);
+}
+foreach ($weekDays as $day) {
+    dump($day->format('Y-m-d') . "<br>");
+}
+dump(now()->toTimeString()); // Định dạng giờ:phút:giây  <== chỉnh app.php thành 'timezone' => 'Asia/Ho_Chi_Minh'
+
+=> thì nó sẽ lấy ra ngày giờ hiện tại cho mình . 
+ 
+-------------------------------------------------------
+$user = auth()->guard('user_api')->user();
+$filter = (object) [
+    'id_hospital' => $user->id,
+];
+$timeWork = $this->timeWorkRepository->getTimeWork($filter)->first();
+$request->merge([
+    'times' => json_encode($request->times),
+]);
+$timeWork = $this->timeWorkRepository->updateTimeWork($timeWork, $request->all());
+$timeWork->times = json_decode($timeWork->times);
+
+dump($timeWork->times->friday->night->time);
+dump($timeWork->times->friday->night->time[0]);
+dump($timeWork->times->friday->night->enable);
+dump($timeWork->times->friday->enable);
+dump($timeWork->times);
+
+return $this->responseOK(200, $timeWork, 'Chỉnh sửa lịch làm việc thành công !');
+
+=> Bên js thì chấm còn bên php thì cứ mũi tên tới thôi 
+
+-------------------------------------------------------
+public function advise($id_doctor)
+{
+    try {
+        // infor doctor 
+        $inforDoctor = InforDoctorRepository::getInforDoctor(['id_doctor' => $id_doctor])->first();
+        if(empty($inforDoctor)) return $this->responseError(404, 'Không tìm thấy bác sĩ !');
+        
+        // time_advise
+        $hospitalDepartment = HospitalDepartmentRepository::searchHospitalDepartment([
+            'id_department' => $inforDoctor->id_department,
+            'id_hospital' => $inforDoctor->id_hospital,
+        ])->first();
+
+        // time_work 
+        $filter = (object) [
+            'id_hospital' => $inforDoctor->id_hospital,
+        ];
+        $timeWork = $this->timeWorkRepository->getTimeWork($filter)->first();
+        $timeWork->times = json_decode($timeWork->times);
+
+        // loại bỏ các thứ trong quá khứ 
+        $currentDayName = strtolower(date('l'));
+        $daysOfWeek = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+        $currentDayIndex = array_search($currentDayName, $daysOfWeek);
+        foreach ($daysOfWeek as $dayOfWeek) {
+            if (array_search($dayOfWeek, $daysOfWeek) < $currentDayIndex) {
+                $timeWork->times->$dayOfWeek->enable = false;
+            }
+        }
+
+        // chia nhỏ lịch làm việc ra 
+        function divideTime($timeArray, $maxMinutes) {
+            $start = strtotime($timeArray[0]);
+            $end = strtotime($timeArray[1]);
+            $dividedTimes = [];
+            while ($start < $end) {
+                $nextEnd = $start + ($maxMinutes * 60);
+                if ($nextEnd > $end) {
+                    break; // Loại bỏ đoạn thời gian ngắn hơn $maxMinutes
+                }
+                $dividedTimes[] = [date("H:i", $start), date("H:i", $nextEnd)];
+                $start = $nextEnd;
+            }
+            return $dividedTimes;
+        }
+        $maxMinutes = $hospitalDepartment->time_advise;
+        foreach ($timeWork->times as $index => $day) {
+            $day->morning->divided_times = divideTime($day->morning->time, $maxMinutes);
+            $day->afternoon->divided_times = divideTime($day->afternoon->time, $maxMinutes);
+            $day->night->divided_times = divideTime($day->night->time, $maxMinutes);
+        }
+        // chia nhỏ lịch làm việc ra 
+
+        // loại bỏ đi các khoảng thời gian đã qua của ngày hiện tại 
+        function filterTimes($divided_times) {
+            $current_time = date("H:i");
+            $new_divided_times = [];
+            foreach ($divided_times as $key => $time_segment) {
+                $start_time = $time_segment[0];
+                if ($start_time >= $current_time) {
+                    $new_divided_times = array_slice($divided_times, $key);
+                    break;
+                }
+            }
+            return $new_divided_times;
+        }
+        $timeWork->times->$currentDayName->morning->divided_times = filterTimes($timeWork->times->$currentDayName->morning->divided_times);
+        $timeWork->times->$currentDayName->afternoon->divided_times = filterTimes($timeWork->times->$currentDayName->afternoon->divided_times);
+        $timeWork->times->$currentDayName->night->divided_times = filterTimes($timeWork->times->$currentDayName->night->divided_times);
+
+        return $this->responseOK(200, $timeWork, 'Xem chi tiết lịch làm việc thành công !');
+    } catch (Throwable $e) {
+        return response()->json(['message' => $e->getMessage()], 400);
+    }
+}
+
+
+}
+
+-------------------------------------------------------
+> git checkout -b task/FinalProject/Elister-Health-Care origin/laravel
+> git checkout -b task/FinalProject/Elister-Health-Care-FE origin/develop 
+
+// Không nên git checkout -b task/FinalProject/Elister-Health-Care/FE origin/develop 
+    => Vì sẽ lỗi 
+
+    Không có sự khác biệt chính giữa hai đoạn mã mà bạn đã cung cấp, đó chỉ là sự khác biệt trong đường dẫn URL.
+
+    '/ajax-add-item':
+    
+    Đoạn mã đầu tiên sử dụng đường dẫn tuyệt đối, bắt đầu bằng dấu /. Điều này đồng nghĩa với việc truy cập đường dẫn '/ajax-add-item' dựa trên gốc của trang web. Ví dụ: nếu trang web của bạn là https://example.com, thì đường dẫn sẽ là https://example.com/ajax-add-item.
+    'ajax-add-item':
+    
+    Đoạn mã thứ hai sử dụng đường dẫn tương đối, không có dấu / ở đầu. Điều này có nghĩa rằng đường dẫn '/ajax-add-item' sẽ được xem xét là một đường dẫn tương đối, và nó sẽ được thêm vào đường dẫn hiện tại của trang web. Ví dụ: nếu trang web của bạn đang hiển thị tại https://example.com/some-page, thì đường dẫn sẽ là https://example.com/some-page/ajax-add-item.
+    Tóm lại, sự khác biệt duy nhất giữa hai đoạn mã là cách xác định đường dẫn tới tài nguyên trên máy chủ. Mã đầu tiên sử dụng đường dẫn tuyệt đối và mã thứ hai sử dụng đường dẫn tương đối, phụ thuộc vào ngữ cảnh và cách trang web của bạn được cấu hình.
+
+
+    Chính xác, nếu bạn đã định nghĩa các đường dẫn tương đối trong Laravel với các giá trị tương ứng là render-article và ajax-add-item, và trang web đang ở địa chỉ https://topbeauty.com.vn/editor/, thì kết quả sẽ như sau:
+
+https://topbeauty.com.vn/editor/ (Không có đường dẫn tương đối) - Đây là đường dẫn tương đối và sẽ giữ nguyên địa chỉ hiện tại của trang web.
+
+https://topbeauty.com.vn/editor/render-article (Đường dẫn tương đối render-article) - Khi bạn sử dụng đường dẫn tương đối render-article, nó sẽ được kết hợp với địa chỉ hiện tại của trang web, cho nên kết quả là https://topbeauty.com.vn/editor/render-article.
+
+https://topbeauty.com.vn/editor/ajax-add-item (Đường dẫn tương đối ajax-add-item) - Tương tự, khi sử dụng đường dẫn tương đối ajax-add-item, nó sẽ kết hợp với địa chỉ hiện tại của trang web, cho nên kết quả là https://topbeauty.com.vn/editor/ajax-add-item.
+
+
+
+
+User
+như này thì nó sẽ giữ nguyên à : Route::get('', [CrawDataController::class, 'crawData'])->name('craw-data');
+ChatGPT
+Đúng, nếu bạn đã định nghĩa một route trong Laravel như sau:
+
+php
+Copy code
+Route::get('', [CrawDataController::class, 'crawData'])->name('craw-data');
+Và trang web đang ở địa chỉ gốc https://topbeauty.com.vn/, thì đường dẫn này sẽ giữ nguyên địa chỉ gốc của trang web và sẽ kết quả là https://topbeauty.com.vn/.
+
+Trong trường hợp này, đường dẫn tương đối trống (hoặc '/') đại diện cho địa chỉ gốc của trang web hiện tại, nên nó sẽ không tạo ra bất kỳ thay đổi nào trong URL.
+
+
+
+
+User
+đây này https://topbeauty.com.vn/editor/
+ChatGPT
+Nếu trang web đang ở địa chỉ https://topbeauty.com.vn/editor/ và bạn đã định nghĩa một route trong Laravel như sau:
+
+php
+Copy code
+Route::get('', [CrawDataController::class, 'crawData'])->name('craw-data');
+Khi bạn truy cập route với đường dẫn rỗng, kết quả sẽ là URL hiện tại của trang web, nghĩa là https://topbeauty.com.vn/editor/ không thay đổi.
+
+--------------------------------------------------------------------------------------------------------
+
+Code ở local thì phải lưu ý các điểm sau để khi deploy không gặp vấn đề gì . 
+
+Lưu ý 1 web.php : 
+    https://topbeauty.com.vn/editor/
+
+    web.php : 
+    Route::get('', [CrawDataController::class, 'crawData'])->name('craw-data');
+    Route::get('render-article', [CrawDataController::class, 'renderArticle'])->name('render-article');
+    Route::get('ajax-add-item', [CrawDataController::class, 'addItem'])->name('ajax-add-item');
+
+    => Đây là các đường dẫn tương đối . 
+    => Khi deploy theo kiểu bỏ toàn bộ source vào một folder nào đó ví dụ : /editor
+
+    => link của nó sẽ là : https://topbeauty.com.vn/editor/
+    => Hãy code đường dẫn tương đối để nó tự thêm vào các link này . 
+
+    Sẽ sinh ra 3 link tương ứng : 
+    https://topbeauty.com.vn/editor/
+    https://topbeauty.com.vn/editor/render-article
+    https://topbeauty.com.vn/editor/ajax-add-item
+
+
+Lưu ý 2 call ajax : 
+    $.ajax({
+        url: 'ajax-add-item',   <== cũng dùng link tương đối 
+        type: 'GET',
+        data: {
+            text: big_header_text,
+            level: big_header_level,
+        },
+        success: function(response) {
+            $('#bottom-right').append(response.new_li_item);
+            $("#cout_all").text(parseInt($("#cout_all").text()) + 1);  
+            $("#cout_h"+big_header_level).text(parseInt($("#cout_h"+big_header_level).text()) + 1); 
+        },
+        error: function(xhr) {
+            console.log(xhr.responseText);
+        }
+    });
+
+Khi mà đang ở trang : https://topbeauty.com.vn/editor thì nó tự thêm 'ajax-add-item' vào 
+để call đến https://topbeauty.com.vn/editor/ajax-add-item
+
+
+Lưu ý 3 : 
+    Không được import các link http vào file blade.php , phải import các file https 
+    còn không thì phải tải các file http về rồi đặt file đó tại thư mục nào đó rồi import vào 
+
+Note : 
+    + Đối với các form submit thì dùng name của nó thay vì dùng route cũng được . 
+    => Nên ta không cần bận tâm nhiều . 
+    
+
+    <form class="col-12" method="GET" action="{{ route('craw-data') }}"></form>
+    + route('craw-data') thì craw-data là name của route đó 
+    
+    + Khi copy các file qua lại , đè lên file cũ thì nó sẽ sinh ra tình trạng không load lại nội dung trang 
+        + Dù có ctlr + f5 
+        + Và mặc dù nội dung file đó đã thay đổi thì nó vẫn còn file cũ . 
+        => Cái này mình chưa fix được , các câu lệnh clear cache đều không được . 
+        => Cách fix là đổi tên file . 
+
+    + Deploy lên thì nên mở terminal trên server rồi chạy lệnh : php artisan route:clear và php artisan route:cache 
+
+--------------------------------------------------------------------------------------------------------
+Commit mọi thay đổi (nếu có) trước khi thực hiện đều này : 
+
++ Đầu tiên hãy chỉnh sửa vào file .gitnore để loại bỏ các file hoặc folder không muốn commit 
++ Sau đó chạy 2 lệnh : 
+    git rm -rf --cached .
+    git add .
+
+--------------------------------------------------------------------------------------------------------
+Sửa file .env xong thì nhớ chạy lệnh : php artisan config:cache 
+
+
+--------------------------------------------------------------------------------------------------------
+Khai báo các file seed cần chạy khi migrate:fresh vào file C:\Users\ADMIN\Downloads\PBL6\docker-compose-laravel\src\database\seeders\DatabaseSeeder.php
+Thì khi mình chạy lệnh : docker-compose run --rm artisan migrate:fresh  --seed
+=> Nó sẽ tự tạo ra các seed . 
+            <?php
+
+            namespace Database\Seeders;
+
+            use Illuminate\Database\Seeder;
+
+            class DatabaseSeeder extends Seeder
+            {
+                /**
+                * Seed the application's database.
+                *
+                * @return void
+                */
+                public function run()
+                {
+                    $this->call([
+                        // ExamplesTableSeeder::class,
+                        AdminsSeeder::class,
+                        CategoriesSeeder::class,
+                        DepartmentsSeeder::class,
+                        ProvincesSeeder::class,
+                        UsersSeeder::class,
+                    ]);
+                }
+            }
+
+--------------------------------------------------------------------------------------------------------
+
++ upload file => link => import link to ricktext editor 
++ fix search (copy paste html vào input là nó lỗi)
++ chuyển lịch làm việc thành => thành lịch calendar reactjs 
+
+-----------------------------------------------------------------------
+
+Ta nên code như này : 
+    'province_code' => $request->province_code ?? null,
+
+Thay vì 
+    'province_code' => $request->province_code ?? '',
+
+Bởi vì khi mà người dùng họ truyền vào 
+
+{
+    "search" : "",
+    "province_code" : ""
+}
+
+=> "province_code" được tính là rỗng => nó có thể vẫn được tìm = ""

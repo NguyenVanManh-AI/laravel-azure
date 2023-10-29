@@ -151,6 +151,7 @@ class HospitalServiceService
                 'orderBy' => $orderBy,
                 'orderDirection' => $orderDirection,
                 'id_hospital' => $user->id,
+                'is_delete' => $request->is_delete ?? null, // null = all ; 1 = đã xóa ; 0 = chưa xóa
             ];
 
             if (!empty($request->paginate)) {
@@ -211,6 +212,7 @@ class HospitalServiceService
                 'search' => $search,
                 'orderBy' => $orderBy,
                 'orderDirection' => $orderDirection,
+                'is_delete' => 0,
             ];
 
             if (!empty($request->paginate)) {

@@ -16,6 +16,7 @@ class HospitalService extends Model
         'time_advise',
         'price',
         'infor',
+        'is_delete',
     ];
 
     public function hospitalDepartment()

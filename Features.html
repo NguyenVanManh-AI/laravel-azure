@@ -1,0 +1,464 @@
+
++ Add Thanh Toán bằng VNPay hoặc Momo
++ Socket Realtime (Test vs Vuejs trước) => Biết cách dùng rồi thì cho vào ReactJS và Angular , Fluter 
++ Firebase Realtime (Test vs Vuejs trước) 
+    + Lấy cái project Vuejs nào của mình mà được setup đầy đủ nhất á , rồi copy ra 
+        code thêm vào đó chức năng Socket realtime và Firebase realtime 
+
+
++ Thêm tính năng chat , thêm 2 bảng : 
+    + Một bảng lưu các cuộc trò chuyện (tách ra để khỏi query tìm các cuộc trò chuyện trong đống tin nhắn , đỡ mất thời gian) 
+        + id
+        + from 
+        + to  
+        + message_after : true (tin nhắn cuối)
+        + created_at 
+        + updated_at 
+
+    + Một bảng lưu tin nhắn 
+        + id 
+        + from 
+        + to 
+        + content 
+        + created_at 
+        + updated_at 
+
++ Dùng Socket để làm realtime vs Angulara , Fluter 
++ Tìm hiểu realtime bằng FireStore của Firebase 
+
++ Thêm try catch cho toàn bộ project 
++ Đổi các nội dung message ở return json và Toastr thành tiếng việt , chuyển lang của project thành tiếng việt . 
+
++ Làm tìm kiếm
++ Làm lịch hẹn , thông báo => socket realtime 
++ Làm chat  
++ Làm thống kê 
+
+
+-------------------------------------------------------
+
+$ docker compose run --rm artisan cache:clear
+$ docker compose run --rm artisan route:clear
+$ docker compose run --rm artisan route:cache 
+$ docker compose run --rm artisan config:clear
+$ docker compose run --rm artisan view:clear
+
+docker-compose exec app chmod -R 777 /var/www/html
+docker-compose exec app ls
+docker-compose exec app sh -c "cd /var && ls"
+docker-compose exec app sh -c "cd /var/www && ls"
+docker-compose exec app sh -c "cd /var/www/html && ls"
+docker-compose exec app sh -c "cd /var/www/html/storage/app/public/image/avatars/ && ls"
+
+docker-compose run --rm artisan make:factory AdminFactory
+
+--------------------------
+
++ xóa container BE trong docker đi 
++ pull code về và chạy lệnh : 
+
+$ docker-compose up -d --build app 
+
++ connect database 
+    Host     : 127.0.0.1 
+    Port     : 3309
+    Database : pbl6 
+    Username : hivanmanh
+    Password : hivanmanh 
+
+$ docker-compose run --rm artisan migrate:fresh
+
+$ docker-compose run --rm artisan db:seed --class=AdminsSeeder
+$ docker-compose run --rm artisan db:seed --class=CategoriesSeeder
+$ docker-compose run --rm artisan db:seed --class=DepartmentsSeeder
+
+$ docker-compose run --rm  artisan queue:work
+
+
+-------------------------------------------------------
+Message tiếng việt : 
+    Clone gói về: git clone git@github.com:NguyenVanManh-AI/laravel-vietnamese-language-vanmanh.git
+    Cho folder vi và file vi.json vào folder resources/lang của ứng dụng Laravel
+    config/app.php : Đổi giá trị locale thành vi.
+-------------------------------------------------------
++ Khi đăng kí , hay khi cập nhật lại email thì đều phải gửi mail và cập nhật ngày mà người dùng xác thực mail vào feild : email_verified_at của bảng users 
++ Doctor , Admin được add tài khoản thì không cần verify email , nhưng sau đó nếu họ cập nhật email thì cũng cần phải verify 
+    => Khi update thông email cho người dùng thì cũng đồng thời set lại cho cột verify mail là null 
+    đợi đến khi họ xác thực lại thì lấy ngày điền lại vào đó . 
+
+    => Bắt buộc cột email_verified_at phải khác Null MỚI CHO ĐĂNG NHẬP . 
+    => Làm cho nó cũng quan trọng giống như cột is_accept vậy . Chỉ khi người dùng xác thực mới cho đăng nhập . 
+
++ feild remember_token phục vụ cho feild : email_verified_at để lưu token rồi check token rồi cập nhật ngày xác thực email 
+    => nó cũng tương tự như việc quên mật khẩu của reset password .   
+
+-------------------------------------------------------
+https://console.cloud.google.com/apis/credentials/oauthclient/1079359168744-ehm0qmfgmg4imvbk33n7d97t69sfjb87.apps.googleusercontent.com?project=soy-vision-362513
+Login by Google 
+    + Angular : <a href="http://localhost:99/api/infor-user/authorized/google"></a> => redirectToGoogle => handleGoogleCallback
+    + handleGoogleCallback : Xử lí register hoặc update thông tin . Trả về view blade mang theo duy nhất acces_token 
+    + View blade redirect về Angular => Angular dùng access_token để lấy profile user qua (API : {{host}}/infor-user/profile)
+
+-------------------------------------------------------
++ Các bảng mình đã thiết lập quan hệ 1-1, 1-n thì ghi mà xóa một bảng ghi ở khóa cha thì nó sẽ xóa luôn các 
+bảng ghi ở khóa con . (Bth là mysql phải báo ra và không cho xóa nhưng đây thì nó xóa luôn)
+Ví dụ xóa user (hospital) thì infor hospital bị xóa luôn . 
+
+=> Nên cẩn thận cái này => Nên set null các bên liên quan trước rồi thực hiện lệnh xóa sau . 
+InforHospital::where("id_department",$id)->update(['id_department'=>null]);   <= set null trước 
+HospitalDepartment::where("id_department",$id)->update(['id_department'=>null]);  <= set null trước 
+$department->delete(); <== xóa sau 
+
+-------------------------------------------------------
+
+Xóa cache 
+    docker compose run --rm artisan cache:clear
+    docker compose run --rm artisan route:clear
+    docker compose run --rm artisan config:clear
+    docker compose run --rm artisan view:clear
+    
+    docker container prune
+    docker image prune -a
+
+
+-------------------------------------------------------
+Docker Lưu cache => các file view (email, layouts,...) không thay đổi =>
+=> xóa các container trong docker đi sau đó build lại 
+=> chạy 'docker-compose up -d --build app' để build lại , sau đó các file này sẽ được load ra nội dung mới . 
+
+(chạy lệnh này không làm thay đổi cơ sở dữ liệu hay gì , docker-compose up -d --build app chỉ khi xóa container của docker 
+thì dữ liệu mới bị thay đổi)
+-------------------------------------------------------
+
+Thêm try catch và transaction cho toàn bộ code 
+
+-------------------------------------------------------
+
+
++ 6/10/2023
+
++ Search : Các tham số chung thường có của search 
+    {
+        "search" : "",
+        "paginate" : 3,   <== (1)
+        "page" : 1,
+        "sortlatest" : false,
+        "sortname" : true
+    }
+
+(1) : Các trường hợp sau sẽ lấy toàn bộ không phân trang : 
+
+    + "paginate" : "",
+    + "paginate" : "0",
+    + "paginate" : 0,
+    + "paginate" : null,
+    + "paginate" : false,
+    => (falsy)
+
+
+=> Lấy toàn bộ vẫn search ("sortlatest" : false,"sortname" : true)
+
+
++ Output API : 
+
+    + ok 
+        {
+            "message": "Đăng nhập thành công !",
+            "data": {
+                "id": 12,
+                "email": "benhviengiadinh@yopmail.com",
+                "username": "benhviengiadinh",
+                "name": "Bệnh viện gia đình",
+                "phone": "0971231233",
+                "address": "Đà Nẵng - Việt Nam",
+                "avatar": "storage/image/avatars/hospitals/anh-bia-3_hospital_1696490177.jpg",
+                "is_accept": 1,
+                "role": "hospital",
+                "email_verified_at": "2023-10-05T07:16:35.000000Z",
+                "created_at": "2023-10-05T07:16:18.000000Z",
+                "updated_at": "2023-10-05T07:16:18.000000Z",
+                "have_password": true,
+                "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOlwvXC9sb2NhbGhvc3Q6OTlcL2FwaVwvdXNlclwvbG9naW4iLCJpYXQiOjE2OTY2MDQyODcsImV4cCI6MTY5NjYwNzg4NywibmJmIjoxNjk2NjA0Mjg3LCJqdGkiOiJKMW1hMjF0RDhWVzU5WEJrIiwic3ViIjo0MSwicHJ2IjoiMjNiZDVjODk0OWY2MDBhZGIzOWU3MDFjNDAwODcyZGI3YTU5NzZmNyJ9.rq3DxiEMhwOEcbNj2WpEfo928oK1SFRHNeHvYE-w9Uw",
+                "token_type": "bearer",
+                "expires_in": 3600,
+                "id_hospital": 41,
+                "province_code": 26,
+                "infrastructure": "[1,2,3,4,4,5,6,6]",
+                "description": "bệnh viện tốt",
+                "location": "[11,12]",
+                "search_number": 0
+            },
+            "status": 200
+        }
+        
+    + error 
+        + TH1 : Bad request 
+            {
+                "message": "Không có bảo hiểm này trong danh sách chấp thuận !",
+                "status": 400
+            }
+        
+        + TH2 : Validate 
+            {
+                "success": false,
+                "message": "Validation errors",
+                "data": [
+                    "Trường email đã có trong cơ sở dữ liệu.",
+                    "Trường tên đăng nhập đã có trong cơ sở dữ liệu.",
+                    "Trường infrastructure không được bỏ trống.",
+                    "Trường mô tả không được bỏ trống.",
+                    "Trường location không được bỏ trống."
+                ],
+                "errors": {
+                    "email": [
+                        "Trường email đã có trong cơ sở dữ liệu."
+                    ],
+                    "username": [
+                        "Trường tên đăng nhập đã có trong cơ sở dữ liệu."
+                    ],
+                    "infrastructure": [
+                        "Trường infrastructure không được bỏ trống."
+                    ],
+                    "description": [
+                        "Trường mô tả không được bỏ trống."
+                    ],
+                    "location": [
+                        "Trường location không được bỏ trống."
+                    ]
+                },
+                "status": 400
+            }
+            
+
++ JSON : 
+    {
+        "email" : "benhviengiadinh2@yopmail.com",
+        "username" : "benhviengiadinh22",
+        "name" : "Bệnh viện gia đình ",
+        "phone" : "0971231233",
+        "province_code" : 29,
+        "address" : "Đà Nẵng - Việt Nam Pro",
+        "avatar" : null,
+        "infrastructure" : [
+            "Máy nội soi",
+            "Giường bệnh",
+            "Phòng xét nghiệm",
+            "Máy chụp phim X-Quang kỹ thuật số",
+            "Chụp cắt lớp vi tính (Chụp CT)",
+            "Siêu âm",
+            "Máy chụp nhũ ảnh",
+            "Máy khám tân tiến"
+            ],
+        "description" : "bệnh viện tốt ",
+        "location" : [99,29]
+    }
+
+
+-------------------------------------------------------
+Khi hospital register thì thêm time work mặc định cho nó . 
+
+-------------------------------------------------------
+
+
+Thêm , xóa , sửa 
+    + Login 
+    + Chỉ có chủ sở hữu 
+
+Article Home (Public) 
+    + Người dùng chỉ xem được những bài viết is_accept=1 và is_show=1 
+    + Những bài viết public ai cũng vào xem được 
+
+Article Admin Mangement
+    + Login 
+    + Admin xem được tất cả bài viết
+    + Có quyền ẩn hoặc hiện tất cả bài viết 
+
+Article Hospital Mangement
+    + Login 
+    + Xem được toàn bộ bài viết của mình 
+    + Xem được toàn bộ bài viết của các bác sĩ thuộc bệnh viện 
+    + Có quyền ẩn hoặc hiện tất cả bài viết của mình 
+    + Có quyền ẩn hoặc hiện tất cả các bài viết của bác sĩ thuộc bệnh viện 
+    + Có quyền phê duyệt bài viết của mình và tất cả các bài viết của bác sĩ thuộc bệnh viện 
+
+Article Doctor 
+    + Login 
+    + Xem toàn bộ bài viết của mình 
+    + Có quyền ẩn hoặc hiện tất cả bài viết của mình 
+
+
+-------------------------------------------------------
+Xóa nhiều bài viết 
+
+Cách 1 : 
+    => Mảng các id của article gửi lên sẽ được loại bỏ đi các id không phải là bài viết của họ . 
+    (Ở client cũng xử lí rồi , nhưng để chắc chắn thì server trong mọi trường hợp đều phải check)
+
+    ví dụ mảng gửi lên : [1,2,3,4,5,6]
+    mảng id các bài viết của người đó [1,2,3,7,8,9]
+    => chỉ giữ lại các con số của mảng [1,2,3,4,5,6] mà có nằm trong mảng [1,2,3,7,8,9]
+    => ta được [1,2,3] => đi xóa các bài viết này 
+
+Cách 2 : 
+    => Không cần lọc , cứ giữ nguyên mảng mà người dùng gửi lên 
+    => Kết hợp thêm điều kiện id nếu như là doctor hoặc hospital 
+    còn nếu admin thì id_user của article = null thôi là được . 
+
+    => Cách 2 dễ hơn . 
+-------------------------------------------------------
+
+Tăng số lượt tìm đọc cho các đối tượng : 
+[Method POST]
+
+{{host}}/public/read-search/article/{id} 
+
+{{host}}/public/read-search/category/{id}
+
+{{host}}/public/read-search/department/{id}
+
+{{host}}/public/read-search/doctor/{id}
+
+{{host}}/public/read-search/hospital/{id}
+
+-------------------------------------------------------
+Đặt lịch tư vấn 
+
+    + Chọn tỉnh 
+    + Chọn bệnh viện thuộc tỉnh 
+    + Chọn chuyên khoa 
+    + Chọn bác sĩ thuộc chuyên khoa 
+    + Chọn ngày 
+
+-------------------------------------------------------
+Chú ý : 
+
+"time": {
+    "date": "2023-10-22",
+    "interval": [
+        "19:00",
+        "19:25"
+    ]
+},
+
+interval khi gửi lên phải đầy đủ 2 chữ số như khi gửi xuống . 
+Nếu một chữ số thì nó sẽ so sánh sai dẫn đến sắp xếp theo thời gian sai . 
+
+"time": {
+    "date": "2023-10-22",
+    "interval": [
+        "07:00", <== vì nó đem số 0 đi so sánh với số 1 
+        "07:25"
+    ]
+},
+
+sẽ nằm trước 
+
+"time": {
+    "date": "2023-10-22",
+    "interval": [
+        "19:00", <== vì nó đem số 0 đi so sánh với số 1 
+        "19:25"
+    ]
+},
+
+
+Còn trường hợp này sẽ sai 
+
+"time": {
+    "date": "2023-10-22",
+    "interval": [
+        "7:00",  <== vì nó đem số 7 đi so sánh với số 1 
+        "7:25"
+    ]
+},
+
+sẽ nằm sau 
+
+"time": {
+    "date": "2023-10-22",
+    "interval": [
+        "19:00", <== vì nó đem số 7 đi so sánh với số 1 
+        "19:25"
+    ]
+},
+
+-------------------------------------------------------
+
+Xóa 
+    + Xóa 
+        + hospital_department (check số lượng bác sĩ thuộc khoa đó = 0 thì mới được phép xóa)
+        + (cần thiết thì check thêm số lượng lịch tư vấn của chuyên khoa này của bệnh viện)  
+
+    + Có thể xóa nhiều 
+        + Article (all)
+        + Work Schedule (hospital, user)
+
+        Chưa có api : 
+            + Category (admin)
+            + Vacation Schedule (doctor, hospital)
+            + health_insurances (admin)
+            + health_insurance_hospital (hospital) 
+
+    + Kiểm tra bảng con trước khi xóa 
+        + hospital_services (liên quan đến work schedule) (hospital)
+        => giải pháp : thêm cột is_delete cho bảng hospital_service (để lại để biết được thông tin dịch vụ , thống kê,...)
+
+    + Không xóa , chỉ chỉnh sửa thôi 
+        + Department 
+
+WorkSchedule 
+    + Advise 
+        + Liên quan đến Department
+
+    + Service 
+        + Liên quan đến hospital_services
+        => FIX : Không được làm theo hướng cũ => để null bác sĩ => code thêm 1 API cho hospital phân dịch vụ đó là do doctor nào làm .  
+        => Phải bổ sung thêm search dịch vụ chưa có bác sĩ . 
+    
+    + Vấn đề : 
+        + Thay đổi time advise department => thay đổi lịch làm việc của bác sĩ => query trong lịch có thể bị trùng 
+        + giải pháp : đổi lịch thì khi đặt (kể cả tư vấn và dịch vụ) đều phải check 
+            + Tư vấn => vào ngày đó => bác sĩ đó => thời gian được đặt phải nằm ngoài thời gian đã được đặt (nếu có)
+            + Dịch vụ => giả sử khi phân mà tất cả đều bận => hủy lịch 
+
+
+Rating 
+    + code...
+    + Cho rating ngay chỗ quản lí work schedule (lịch hẹn quá ngày hiện tại thì hiện ra => cho đánh giá)
+            
+
++ Chatbox : Firebase 
++ Chatbot : ChatGPT 
+
+
+Vacation Schedule 
+    + Bỏ 
+    => bỏ vào Hướng phát triển . 
+
+
+Notify 
+    + Bỏ 
+
+Comments (Ý Kiến phản hồi , đóng góp hệ thống)
+    + Làm sau 
+
+
+-------------------------------------------------------
+admin                       hospital                        doctor
+email       admin...@yopmail.com        benhvien...@yopmail.com         bacsi...@yopmail.com
+pw          123456                      123456                          123456 
+
+
+Còn lại là tài khoản : user 
+Có thể có vài account không nằm trong quy tắt trên , xem cái role của nó là được 
+-------------------------------------------------------
+
+
+    
+    
+    
+        
+
+
+
+

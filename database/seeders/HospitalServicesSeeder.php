@@ -188,6 +188,7 @@ class HospitalServicesSeeder extends Seeder
                             'id_hospital_department' => $ids->random(),
                             'time_advise' => random_int(1, 4) * 30,
                             'price' => random_int(1, 60) * 50000,
+                            'is_delete' => false,
                             'created_at' => now(),
                             'updated_at' => now(),
                         ]
