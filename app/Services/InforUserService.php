@@ -121,7 +121,7 @@ class InforUserService
 
                 // verify email
                 $token = Str::random(32);
-                $url = UserEnum::DOMAIN_PATH . 'verify-email/' . $token;
+                $url = UserEnum::VERIFY_MAIL_USER . $token;
                 Log::info("Add jobs to Queue , Email: $user->email with URL: $url");
                 Queue::push(new SendVerifyEmail($user->email, $url));
                 $data = ['token_verify_email' => $token];
@@ -261,7 +261,7 @@ class InforUserService
             // sendmail verify
             if ($oldEmail != $request->email) {
                 $token = Str::random(32);
-                $url = UserEnum::DOMAIN_PATH . 'verify-email/' . $token;
+                $url = UserEnum::VERIFY_MAIL_USER . $token;
                 Log::info("Add jobs to Queue , Email: $user->email with URL: $url");
                 Queue::push(new SendVerifyEmail($user->email, $url));
                 $content = 'Email của tài khoản của bạn đã được thay đổi thành ' . $user->email . '. Nếu bạn không phải là người thay đổi , hãy liên hệ với quản trị viên của hệ thống để được hỗ trợ . ';

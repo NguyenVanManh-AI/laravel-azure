@@ -37,11 +37,6 @@ class UserController extends Controller
         return $this->userService->changePassword($request);
     }
 
-    public function forgotForm(Request $request)
-    {
-        return view('user.reset_password');
-    }
-
     public function forgotSend(RequestSendForgot $request)
     {
         return $this->userService->forgotSend($request);
@@ -53,9 +48,9 @@ class UserController extends Controller
     }
 
     // verify email
-    public function verifyEmail($token)
+    public function verifyEmail(Request $request)
     {
-        return $this->userService->verifyEmail($token);
+        return $this->userService->verifyEmail($request);
     }
 
     public function getInforUser($id)

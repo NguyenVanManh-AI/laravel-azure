@@ -2,20 +2,14 @@
 
 namespace Database\Seeders;
 
-use App\Models\Category;
 use App\Models\HealthInsurance;
-use Database\Factories\FakeImageFactory;
-use GuzzleHttp\Client;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\File;
 
 class HealthInsurancesSeeder extends Seeder
 {
     public function run()
     {
         try {
-
             $healthInsurances = [
                 [
                     'name' => 'Bảo hiểm Y tế cơ bản',

@@ -156,7 +156,7 @@ class InforDoctorService
             // sendmail verify
             if ($oldEmail != $request->email) {
                 $token = Str::random(32);
-                $url = UserEnum::DOMAIN_PATH . 'verify-email/' . $token;
+                $url = UserEnum::VERIFY_MAIL_USER . $token;
                 Queue::push(new SendVerifyEmail($user->email, $url));
                 $new_email = $user->email;
                 $content = 'Email tài khoản của bạn đã chuyển thành ' . $new_email . ' Nếu bạn không phải là người thực hiện , hãy liên hệ với quản trị viên của hệ thống để được hỗ trợ . ';

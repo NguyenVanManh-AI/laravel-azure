@@ -124,14 +124,15 @@ class DepartmentService
     public function all(Request $request)
     {
         try {
-
-            // hospital 
-            if($request->id_hospital) {
+            // hospital
+            if ($request->id_hospital) {
                 $hospital = InforHospitalRepository::getInforHospital(['id_hospital' => $request->id_hospital])->first();
-                if (empty($hospital)) return $this->responseError(404, 'Không tìm thấy bệnh viện !');
+                if (empty($hospital)) {
+                    return $this->responseError(404, 'Không tìm thấy bệnh viện !');
+                }
                 $hospitalDepartments = HospitalDepartmentRepository::searchHospitalDepartment(['id_hospital' => $request->id_hospital])->get();
                 $id_departments = [];
-                foreach($hospitalDepartments as $hospitalDepartment) {
+                foreach ($hospitalDepartments as $hospitalDepartment) {
                     $id_departments[] = $hospitalDepartment->id_department;
                 }
             }

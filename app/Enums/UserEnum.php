@@ -8,9 +8,18 @@ class UserEnum extends BaseEnum
 
     public const PATH_FILE_DB = 'storage/Blog/image/avatars/';
 
-    // public const DOMAIN_PATH = 'http://localhost:99/'; // docker 
-    // public const DOMAIN_PATH = 'http://localhost:8000/'; // laragon 
+    // public const DOMAIN_PATH = 'http://localhost:99/'; // docker
+    // public const DOMAIN_PATH = 'http://localhost:8000/'; // laragon
 
     public const DOMAIN_CLIENT = 'http://localhost:4200/';
-    public const DOMAIN_PATH = 'https://vanmanh.azurewebsites.net/'; // azure 
+
+    public const DOMAIN_PATH = 'https://vanmanh.azurewebsites.net/'; // azure
+
+    public const FORGOT_FORM_USER = 'http://localhost:4200/user/forgot-form?token=';
+
+    public const FORGOT_FORM_ADMIN = 'http://localhost:4200/admin/forgot-form?token=';
+
+    public const VERIFY_MAIL_USER = 'http://localhost:4200/user/verify-email?token=';
+
+    public const VERIFY_MAIL_ADMIN = 'http://localhost:4200/admin/verify-email?token=';
 }

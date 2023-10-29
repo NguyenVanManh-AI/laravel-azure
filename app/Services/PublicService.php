@@ -3,14 +3,12 @@
 namespace App\Services;
 
 use App\Http\Requests\RequestCalculatorBMI;
-use App\Models\Department;
 use App\Repositories\ArticleRepository;
 use App\Repositories\CategoryRepository;
 use App\Repositories\DepartmentRepository;
 use App\Repositories\HospitalServiceRepository;
 use App\Repositories\InforDoctorRepository;
 use App\Repositories\InforHospitalRepository;
-use App\Repositories\UserRepository;
 use Illuminate\Http\Request;
 use Throwable;
 
@@ -129,7 +127,6 @@ class PublicService
     public function calculatorBMI(RequestCalculatorBMI $request)
     {
         try {
-
             $height = $request->height;
             $weight = $request->weight;
 
@@ -143,12 +140,24 @@ class PublicService
                 'weight' => $weight,
             ];
 
-            if ($bmi <= 18.4) $condition = 'Thiếu cân';
-            if (18.5 <= $bmi && $bmi <= 22.9) $condition = 'Khỏe mạnh';
-            if (23 <= $bmi && $bmi <= 24.9) $condition = 'Thừa cân';
-            if (23 <= $bmi && $bmi <= 24.9) $condition = 'Thừa cân';
-            if (25 <= $bmi && $bmi <= 29.9) $condition = 'Béo phí độ 1';
-            if ($bmi >= 30) $condition = 'Béo phí độ 2';
+            if ($bmi <= 18.4) {
+                $condition = 'Thiếu cân';
+            }
+            if (18.5 <= $bmi && $bmi <= 22.9) {
+                $condition = 'Khỏe mạnh';
+            }
+            if (23 <= $bmi && $bmi <= 24.9) {
+                $condition = 'Thừa cân';
+            }
+            if (23 <= $bmi && $bmi <= 24.9) {
+                $condition = 'Thừa cân';
+            }
+            if (25 <= $bmi && $bmi <= 29.9) {
+                $condition = 'Béo phí độ 1';
+            }
+            if ($bmi >= 30) {
+                $condition = 'Béo phí độ 2';
+            }
 
             $data->condition = $condition;
 
@@ -161,7 +170,6 @@ class PublicService
     public function searchHome(Request $request)
     {
         try {
-
             $search = $request->search ?? '';
             $filter = (object) [
                 'search' => $search,
@@ -171,7 +179,9 @@ class PublicService
             $departments = DepartmentRepository::searchDepartment($filter)->limit(4)->get();
 
             $hospitalServices = HospitalServiceRepository::searchAll($filter)->limit(4)->get();
-            foreach ($hospitalServices as $hospitalService) $hospitalService->infor = json_decode($hospitalService->infor);
+            foreach ($hospitalServices as $hospitalService) {
+                $hospitalService->infor = json_decode($hospitalService->infor);
+            }
 
             $filter->role = 'hospital';
             $hospitals = InforHospitalRepository::searchHospital($filter)->limit(4)->get();

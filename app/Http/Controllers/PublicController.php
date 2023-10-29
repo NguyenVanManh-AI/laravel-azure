@@ -29,5 +29,4 @@ class PublicController extends Controller
     {
         return $this->publicService->searchHome($request);
     }
-    
 }

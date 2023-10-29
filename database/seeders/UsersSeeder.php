@@ -2,17 +2,12 @@
 
 namespace Database\Seeders;
 
-use App\Models\Category;
-use Illuminate\Database\Seeder;
-use Database\Factories\FakeImageFactory;
-use GuzzleHttp\Client;
-use Illuminate\Support\Facades\DB;
-use App\Models\Admin;
 use App\Models\User;
 use App\Repositories\InforHospitalRepository;
 use App\Repositories\InforUserRepository;
 use App\Repositories\TimeWorkRepository;
-use Illuminate\Database\Eloquent\Factories\Factory;
+use GuzzleHttp\Client;
+use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Hash;
 
@@ -25,8 +20,7 @@ class UsersSeeder extends Seeder
      */
     public function run()
     {
-
-        // hospital 
+        // hospital
         $pathFolder = 'public/storage/image/avatars/hospitals';
         if (!File::exists($pathFolder)) {
             File::makeDirectory($pathFolder, 0755, true);
@@ -104,17 +98,17 @@ class UsersSeeder extends Seeder
                         );
                         $user = User::create($data);
 
-                        // infor_hospital 
+                        // infor_hospital
                         $data = [
                             'id_hospital' => $user->id,
                             'province_code' => random_int(1, 63),
-                            'infrastructure' => json_encode(["Máy nội soi", "Giường bệnh", "Phòng xét nghiệm", "Máy chụp phim X-Quang kỹ thuật số", "Chụp cắt lớp vi tính (Chụp CT)", "Siêu âm", "Máy chụp nhũ ảnh", "Máy khám tân tiến"]),
+                            'infrastructure' => json_encode(['Máy nội soi', 'Giường bệnh', 'Phòng xét nghiệm', 'Máy chụp phim X-Quang kỹ thuật số', 'Chụp cắt lớp vi tính (Chụp CT)', 'Siêu âm', 'Máy chụp nhũ ảnh', 'Máy khám tân tiến']),
                             'description' => 'Bệnh viện tốt, đa chuyên khoa, dịch vụ giá cả hợp lí .',
                             'location' => json_encode([19, 29]),
                             'search_number' => random_int(0, 300),
                         ];
                         $inforUser = InforHospitalRepository::createHospital($data);
-                        // infor_hospital 
+                        // infor_hospital
 
                         // addTimeWork
                         $timeDefault = [
@@ -159,12 +153,12 @@ class UsersSeeder extends Seeder
             }
         }
 
-        // user 
+        // user
         $pathFolder = 'public/storage/image/avatars/users';
-        if (!File::exists($pathFolder)) { 
+        if (!File::exists($pathFolder)) {
             File::makeDirectory($pathFolder, 0755, true);
-        } 
-        $users = [ 
+        }
+        $users = [
             [
                 'email' => 'nhathoang999@yopmail.com',
                 'username' => 'nhathoang999',
@@ -237,7 +231,7 @@ class UsersSeeder extends Seeder
                         );
                         $new_user = User::create($data);
 
-                        // infor_user 
+                        // infor_user
                         $data = [
                             'id_user' => $new_user->id,
                             'date_of_birth' => date('Y-m-d', mt_rand(strtotime('2000-01-01'), strtotime('2002-12-29'))),
@@ -248,7 +242,7 @@ class UsersSeeder extends Seeder
                             'gender' => random_int(0, 1),
                         ];
                         $inforUser = InforUserRepository::createInforUser($data);
-                        // infor_user 
+                        // infor_user
 
                         break;
                     }

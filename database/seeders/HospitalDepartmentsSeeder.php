@@ -2,28 +2,17 @@
 
 namespace Database\Seeders;
 
-use App\Models\Category;
-use Illuminate\Database\Seeder;
-use Database\Factories\FakeImageFactory;
-use GuzzleHttp\Client;
-use Illuminate\Support\Facades\DB;
-use App\Models\Admin;
 use App\Models\Department;
 use App\Models\HospitalDepartment;
 use App\Models\User;
-use App\Repositories\InforHospitalRepository;
-use App\Repositories\InforUserRepository;
-use App\Repositories\TimeWorkRepository;
-use Illuminate\Database\Eloquent\Factories\Factory;
-use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\Hash;
+use Illuminate\Database\Seeder;
 
 class HospitalDepartmentsSeeder extends Seeder
 {
     public function run()
     {
-        $hospitals = User::where('role','hospital')->get();
-        // $idDepartments = Department::all()->id; // sai 
+        $hospitals = User::where('role', 'hospital')->get();
+        // $idDepartments = Department::all()->id; // sai
         $idDepartments = Department::pluck('id')->all(); // đúng (lấy ra mảng id)
         foreach ($hospitals as $index => $hospital) {
             for ($i = 0; $i <= 10; $i++) {
@@ -31,8 +20,8 @@ class HospitalDepartmentsSeeder extends Seeder
                 HospitalDepartment::create([
                     'id_department' => $idDepartments[$i],
                     'id_hospital' => $hospital->id,
-                    'time_advise' => rand(0, 4)*30,
-                    'price' => rand(1, 60)*50000,
+                    'time_advise' => rand(0, 4) * 30,
+                    'price' => rand(1, 60) * 50000,
                     'created_at' => now(),
                     'updated_at' => now(),
                 ]);

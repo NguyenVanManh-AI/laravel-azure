@@ -2,8 +2,9 @@
 
 namespace App\Http\Requests;
 
-use Brian2694\Toastr\Facades\Toastr;
+use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Http\Exceptions\HttpResponseException;
 
 class RequestCreatePassword extends FormRequest
 {
@@ -26,15 +27,27 @@ class RequestCreatePassword extends FormRequest
     {
         return [
             'new_password' => 'required|string|min:6|confirmed',
+            'token' => 'required',
         ];
     }
 
-    public function withValidator($validator)
+    public function failedValidation(Validator $validator)
     {
-        if ($validator->fails()) {
-            foreach ($validator->errors()->all() as $error) {
-                Toastr::error($error);
-            }
-        }
+        $errors = $validator->errors()->all();
+        throw new HttpResponseException(response()->json([
+            'success' => false,
+            'message' => 'Validation errors',
+            'data' => $errors,
+            'errors' => $validator->errors(),
+            'status' => 422,
+        ], 422));
+    }
+
+    public function messages()
+    {
+        return [
+            'title.required' => 'Title is required',
+            'body.required' => 'Body is required',
+        ];
     }
 }

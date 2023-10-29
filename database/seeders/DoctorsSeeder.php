@@ -2,19 +2,11 @@
 
 namespace Database\Seeders;
 
-use App\Models\Category;
-use Illuminate\Database\Seeder;
-use Database\Factories\FakeImageFactory;
-use GuzzleHttp\Client;
-use Illuminate\Support\Facades\DB;
-use App\Models\Admin;
 use App\Models\HospitalDepartment;
 use App\Models\User;
 use App\Repositories\InforDoctorRepository;
-use App\Repositories\InforHospitalRepository;
-use App\Repositories\InforUserRepository;
-use App\Repositories\TimeWorkRepository;
-use Illuminate\Database\Eloquent\Factories\Factory;
+use GuzzleHttp\Client;
+use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Hash;
 
@@ -23,7 +15,7 @@ class DoctorsSeeder extends Seeder
     public function run()
     {
         try {
-            // doctor  
+            // doctor
             $pathFolder = 'public/storage/image/avatars/doctors';
             if (!File::exists($pathFolder)) {
                 File::makeDirectory($pathFolder, 0755, true);
@@ -133,10 +125,10 @@ class DoctorsSeeder extends Seeder
                     'name' => 'Bệnh viện Đa Khoa Thanh Hóa',
                     'address' => 'Đà Nẵng - Việt Nam',
                     'phone' => '0971231233',
-                ]
+                ],
             ];
 
-            // lấy 3 bệnh viện đầu tiên 
+            // lấy 3 bệnh viện đầu tiên
             $hospitals = User::where('role', 'hospital')->limit(3)->get();
             foreach ($hospitals as $index => $hospital) {
                 $hospital->idDepartments = HospitalDepartment::where('id_hospital', $hospital->id)->get()->pluck('id_department');
@@ -169,9 +161,9 @@ class DoctorsSeeder extends Seeder
                                 ]
                             );
                             $user = User::create($data);
-                            // infor_hospital 
-                            // mảng doctors gồm 15 doctor => chia mảng làm 3 cho 3 bệnh viện 
-                            // mỗi bệnh viện 5 bác sĩ 
+                            // infor_hospital
+                            // mảng doctors gồm 15 doctor => chia mảng làm 3 cho 3 bệnh viện
+                            // mỗi bệnh viện 5 bác sĩ
                             $result = floor($index / 5);
 
                             $data = [
@@ -189,7 +181,7 @@ class DoctorsSeeder extends Seeder
                             ];
 
                             $inforDoctor = InforDoctorRepository::createDoctor($data);
-                            // infor_hospital 
+                            // infor_hospital
                             break;
                         }
                     }

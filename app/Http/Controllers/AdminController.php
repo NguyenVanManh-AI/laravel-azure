@@ -60,9 +60,9 @@ class AdminController extends Controller
     }
 
     // verify email
-    public function verifyEmail($token)
+    public function verifyEmail(Request $request)
     {
-        return $this->adminService->verifyEmail($token);
+        return $this->adminService->verifyEmail($request);
     }
 
     public function allAdmin(Request $request)
@@ -73,11 +73,6 @@ class AdminController extends Controller
     public function allUser(Request $request)
     {
         return $this->adminService->allUser($request);
-    }
-
-    public function forgotForm()
-    {
-        return view('admin.reset_password');
     }
 
     public function forgotSend(RequestSendForgot $request)

@@ -3,16 +3,10 @@
 namespace Database\Seeders;
 
 use App\Models\Article;
-use App\Models\Category;
-use App\Models\HealthInsurance;
-use App\Models\HospitalDepartment;
-use App\Models\HospitalService;
 use App\Models\InforDoctor;
 use App\Models\User;
-use Database\Factories\FakeImageFactory;
 use GuzzleHttp\Client;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 
 class ArticlesSeeder extends Seeder
@@ -20,7 +14,6 @@ class ArticlesSeeder extends Seeder
     public function run()
     {
         try {
-
             $pathFolder = 'public/storage/image/thumbnail/articles';
             if (!File::exists($pathFolder)) {
                 File::makeDirectory($pathFolder, 0755, true);
@@ -126,7 +119,7 @@ class ArticlesSeeder extends Seeder
                     'id_category' => 5,
                     'title' => '6 cách trị bệnh mất ngủ ở người già hiệu quả không dùng thuốc',
                     'content' => '<ul><li><a href="https://hellobacsi.com/lao-hoa-lanh-manh/van-de-lao-hoa/benh-mat-ngu-o-nguoi-gia/#nguyen-nhan-gay-benh-mat-ngu-o-nguoi-gia" rel="noopener noreferrer" target="_blank" style="color: rgb(40, 74, 117);"><strong>Nguyên nhân gây bệnh mất ngủ ở người già</strong></a></li><li><a href="https://hellobacsi.com/lao-hoa-lanh-manh/van-de-lao-hoa/benh-mat-ngu-o-nguoi-gia/#nguoi-lon-tuoi-ngu-bao-nhieu-la-du" rel="noopener noreferrer" target="_blank" style="color: rgb(40, 74, 117);"><strong>Người lớn tuổi ngủ bao nhiêu là đủ?</strong></a></li><li><a href="https://hellobacsi.com/lao-hoa-lanh-manh/van-de-lao-hoa/benh-mat-ngu-o-nguoi-gia/#trieu-chung-benh-mat-ngu-o-nguoi-gia" rel="noopener noreferrer" target="_blank" style="color: rgb(40, 74, 117);"><strong>Triệu chứng bệnh mất ngủ ở người già</strong></a></li><li><a href="https://hellobacsi.com/lao-hoa-lanh-manh/van-de-lao-hoa/benh-mat-ngu-o-nguoi-gia/#6-cach-tri-mat-ngu-cho-nguoi-gia" rel="noopener noreferrer" target="_blank" style="color: rgb(40, 74, 117);"><strong>6 cách trị mất ngủ cho người già</strong></a></li><li><a href="https://hellobacsi.com/lao-hoa-lanh-manh/van-de-lao-hoa/benh-mat-ngu-o-nguoi-gia/#nguyen-tac-ngan-ngua-benh-mat-ngu-o-nguoi-gia" rel="noopener noreferrer" target="_blank" style="color: rgb(40, 74, 117);"><strong>Nguyên tắc ngăn ngừa bệnh mất ngủ ở người già</strong></a></li></ul><p><span style="background-color: initial;"><img src="https://cdn.hellobacsi.com/wp-content/uploads/2022/12/benh-mat-ngu-o-nguoi-gia_1233181252.jpg?w=3840&amp;q=75"></span></p><p><strong>Tuổi tác càng cao càng làm giảm sút chất lượng giấc ngủ ở một người. Đây cũng là một trong những nguyên nhân chính gây bệnh mất ngủ ở người già. Vậy làm sao để cải thiện? Trong bài viết này, hãy cùng Hello Bacsi tìm hiểu ngay 6 cách trị mất ngủ cho người già an toàn, hiệu quả mà không cần dùng thuốc nhé!</strong></p><p><br></p><h2>Nguyên nhân gây bệnh mất ngủ ở người già</h2><p>Người lớn tuổi thường sẽ đối mặt với những thay đổi trong thói quen ngủ. 4 nguyên nhân chính gây bệnh mất ngủ ở người già bao gồm:</p><p><br></p><p><br></p><p><strong>Rối loạn giấc ngủ tiên phát:</strong> Phổ biến nhất là chứng ngưng thở khi ngủ (hay gặp ở những người béo phì) hoặc các hiện tượng chân tay tự cử động về đêm, gây thức giấc.</p><p><strong>Rối loạn giấc ngủ thứ phát: </strong>Cơ thể đau nhức do các bệnh cơ xương khớp có thể khiến người cao tuổi thức giấc giữa đêm và khó ngủ trở lại. Một số bệnh lý khác cũng gây mất ngủ như thiếu máu cơ tim gây đau ngực, tiểu đêm, khó thở do suy tim, viêm phế quản, hen…</p><p><strong>Bệnh lý tâm thần kinh: </strong>Căng thẳng, trầm cảm hoặc những rối loạn thần kinh là yếu tố ảnh hưởng trực tiếp đến giấc ngủ ở người cao tuổi. Bệnh nhân thường khó bắt đầu giấc ngủ, hay thức giấc sớm hoặc có hiện tượng ngủ ngày.&nbsp;</p>',
-                ]
+                ],
             ];
 
             $ids = [];
@@ -155,7 +148,7 @@ class ArticlesSeeder extends Seeder
                             $data = array_merge(
                                 $article,
                                 [
-                                    'id_user' => $ids[array_rand($ids)], // random id hoặc null 
+                                    'id_user' => $ids[array_rand($ids)], // random id hoặc null
                                     'thumbnail' => 'storage/image/thumbnail/articles/' . $nameImage,
                                     'search_number' => random_int(0, 300),
                                     'is_accept' => 1,

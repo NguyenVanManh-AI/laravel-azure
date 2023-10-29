@@ -85,8 +85,8 @@ class HospitalServiceRepository extends BaseRepository implements HospitalServic
             ->when(!empty($filter->search), function ($q) use ($filter) {
                 $q->where(function ($query) use ($filter) {
                     $query->where('hospital_services.name', 'LIKE', '%' . $filter->search . '%')
-                    ->orWhere('users_hospital.name', 'LIKE', '%' . $filter->search . '%')
-                    ->orWhere('departments.name', 'LIKE', '%' . $filter->search . '%');
+                        ->orWhere('users_hospital.name', 'LIKE', '%' . $filter->search . '%')
+                        ->orWhere('departments.name', 'LIKE', '%' . $filter->search . '%');
                 });
             })
             ->when(!empty($filter->province_code), function ($query) use ($filter) {

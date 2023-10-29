@@ -37,7 +37,9 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 // Admin
 Route::prefix('admin')->controller(AdminController::class)->group(function () {
     Route::post('login', 'login');
+    Route::post('verify-email', 'verifyEmail');
     Route::post('forgot-pw-sendcode', 'forgotSend');
+    Route::post('forgot-update', 'forgotUpdate');
     Route::middleware('auth:admin_api')->group(function () {
         Route::get('logout', 'logout');
         Route::get('profile', 'profile');
@@ -59,7 +61,9 @@ Route::prefix('admin')->controller(AdminController::class)->group(function () {
 // User
 Route::prefix('user')->controller(UserController::class)->group(function () {
     Route::post('login', 'login');
+    Route::post('verify-email', 'verifyEmail');
     Route::post('forgot-pw-sendcode', 'forgotSend');
+    Route::post('forgot-update', 'forgotUpdate');
     Route::middleware('auth:user_api')->group(function () {
         Route::get('logout', 'logout');
         Route::post('change-password', 'changePassword');

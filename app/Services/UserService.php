@@ -7,16 +7,13 @@ use App\Http\Requests\RequestChangePassword;
 use App\Http\Requests\RequestCreatePassword;
 use App\Http\Requests\RequestSendForgot;
 use App\Jobs\SendForgotPasswordEmail;
-use App\Models\Admin;
 use App\Models\User;
-use App\Repositories\AdminRepository;
 use App\Repositories\InforDoctorRepository;
 use App\Repositories\InforHospitalRepository;
 use App\Repositories\InforUserRepository;
 use App\Repositories\PasswordResetRepository;
 use App\Repositories\UserInterface;
 use App\Repositories\UserRepository;
-use Brian2694\Toastr\Facades\Toastr;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
@@ -136,6 +133,11 @@ class UserService
     {
         try {
             $email = $request->email;
+            $findUser = User::where('email', $email)->first();
+            if (empty($findUser)) {
+                return $this->responseError(404, 'Không tìm thấy tài khoản trong hệ thống !');
+            }
+
             $token = Str::random(32);
             $isUser = 1;
             $user = PasswordResetRepository::findPasswordReset($email, $isUser);
@@ -146,7 +148,7 @@ class UserService
             } else {
                 PasswordResetRepository::createToken($email, $isUser, $token);
             }
-            $url = UserEnum::DOMAIN_PATH . 'forgot-form?token=' . $token;
+            $url = UserEnum::FORGOT_FORM_USER . $token;
             Log::info("Add jobs to Queue , Email: $email with URL: $url");
             Queue::push(new SendForgotPasswordEmail($email, $url));
 
@@ -159,51 +161,32 @@ class UserService
     public function forgotUpdate(RequestCreatePassword $request)
     {
         try {
+            $token = $request->token ?? '';
             $new_password = Hash::make($request->new_password);
-            $passwordReset = PasswordResetRepository::findByToken($request->token);
-            if ($passwordReset) { // user, doctor, hospital
-                if ($passwordReset->is_user == 1) {
-                    $user = UserRepository::findUserByEmail($passwordReset->email);
-                    if ($user) {
-                        $data = ['password' => $new_password];
-                        $user = UserRepository::updateUser($user->id, $data);
-                        $passwordReset->delete();
+            $passwordReset = PasswordResetRepository::findByToken($token);
+            if ($passwordReset) {
+                $user = UserRepository::findUserByEmail($passwordReset->email);
+                if ($passwordReset->is_user == 1 && !empty($user)) {
+                    $user->update(['password' => $new_password]);
+                    $passwordReset->delete();
 
-                        Toastr::success('Đặt lại mật khẩu thành công !');
-
-                        return redirect()->route('form_reset_password');
-                    }
-                    Toastr::warning('Không thể tìm thấy tài khoản !');
-
-                    return redirect()->route('form_reset_password');
-                } else { // admin, superamdin, manager
-                    $admin = AdminRepository::findAdminByEmail($passwordReset->email);
-                    if ($admin) {
-                        $data = ['password' => $new_password];
-                        $admin = AdminRepository::updateAdmin($admin->id, $data);
-                        $passwordReset->delete();
-
-                        Toastr::success('Đặt lại mật khẩu thành công !');
-
-                        return redirect()->route('admin_form_reset_password');
-                    }
-                    Toastr::warning('Không tìm thấy tài khoản !');
-
-                    return redirect()->route('admin_form_reset_password');
+                    return $this->responseOK(200, null, 'Đặt lại mật khẩu thành công !');
+                } else {
+                    return $this->responseError(404, 'Không tìm thấy tài khoản !');
                 }
             } else {
-                Toastr::warning('Token đã hết hạn !');
-
-                return redirect()->route('form_reset_password');
+                return $this->responseError(400, 'Token đã hết hạn !');
             }
         } catch (Throwable $e) {
+            return $this->responseError(400, $e->getMessage());
         }
     }
 
     // verify email
-    public function verifyEmail($token)
+    public function verifyEmail(Request $request)
     {
         try {
+            $token = $request->token ?? '';
             $user = $this->userRepository->findUserByTokenVerifyEmail($token);
             if ($user) {
                 $data = [
@@ -211,15 +194,13 @@ class UserService
                     'token_verify_email' => null,
                 ];
                 $user = $this->userRepository->updateUser($user->id, $data);
-                $status = true;
-                Toastr::success('Email của bạn đã được xác nhận !');
-            } else {
-                $status = false;
-                Toastr::warning('Token đã hết hạn !');
-            }
 
-            return view('user.status_verify_email', ['status' => $status]);
+                return $this->responseOK(200, null, 'Email của bạn đã được xác nhận !');
+            } else {
+                return $this->responseError(400, 'Token đã hết hạn !');
+            }
         } catch (Throwable $e) {
+            return $this->responseError(400, $e->getMessage());
         }
     }
 

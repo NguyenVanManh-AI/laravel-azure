@@ -2,23 +2,16 @@
 
 namespace Database\Seeders;
 
-use App\Models\Category;
-use App\Models\HealthInsurance;
 use App\Models\HospitalDepartment;
 use App\Models\HospitalService;
 use App\Models\User;
-use Database\Factories\FakeImageFactory;
-use GuzzleHttp\Client;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\File;
 
 class HospitalServicesSeeder extends Seeder
 {
     public function run()
     {
         try {
-
             $services = [
                 [
                     'name' => 'Dịch vụ tẩy trắng răng',
@@ -37,7 +30,7 @@ class HospitalServicesSeeder extends Seeder
                             • Tẩy trắng tại chổ bằng đèn Zoom 2
                             • Tẩy trắng tại nhà
                             • Tẩy trắng tại phòng khám loại 2</span>',
-                        'location' => [19,29],
+                        'location' => [19, 29],
                     ]),
                 ],
                 [
@@ -57,7 +50,7 @@ class HospitalServicesSeeder extends Seeder
                             • Gây tê và vệ sinh chỗ cần trám
                             • Tiến hành trám
                             • Kiểm tra, chỉnh sửa chỗ trám và hoàn tất</span>',
-                        'location' => [19,29],
+                        'location' => [19, 29],
                     ]),
                 ],
                 [
@@ -79,7 +72,7 @@ class HospitalServicesSeeder extends Seeder
                         • Lấy cao răng cấp 3: 300,000 VNĐ
                         • Lấy cao răng trẻ em: 250,000 VNĐ</span>
                         <br /></p>',
-                        'location' => [19,29],
+                        'location' => [19, 29],
                     ]),
                 ],
                 [
@@ -100,7 +93,7 @@ class HospitalServicesSeeder extends Seeder
                         • Nhổ răng khôn vĩnh viễn nhóm răng khôn ngầm
                         • Nhổ răng khôn vĩnh viễn nhóm răng khôn thẳng</span>
                         <br /></p>',
-                        'location' => [19,29],
+                        'location' => [19, 29],
                     ]),
                 ],
                 [
@@ -118,7 +111,7 @@ class HospitalServicesSeeder extends Seeder
 
                         <span style="color: rgb(38, 38, 38); font-family: Inter, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, Oxygen, Ubuntu, Cantarell, &quot;Helvetica Neue&quot;, sans-serif; font-size: 16px; white-space: pre-line">• Quá trình nội soi đại tràng thường mất khoảng từ 30 - 45 phút. Các bác sĩ sẽ tiến hành đưa thiết bị nội soi vào hậu môn, bơm không khí vào ruột già làm cho đoạn ruột phồng ra nhờ vậy có thể quan sát các cấu trúc bên trong ruột một cách rõ hơn.</span>
                         <br /></p>',
-                        'location' => [19,29],
+                        'location' => [19, 29],
                     ]),
                 ],
                 [
@@ -138,7 +131,7 @@ class HospitalServicesSeeder extends Seeder
                         
                         • Bệnh nhân sẽ được hướng dẫn tư thế nằm phù hợp, các bác sĩ tiến hành đưa thiết bị nội soi vào miệng, xuống cổ họng và đến thực quản, tầm soát các vấn đề bất thường thông qua hình ảnh trên màn hình. "</span>
                         <br /></p>',
-                        'location' => [19,29],
+                        'location' => [19, 29],
                     ]),
                 ],
                 [
@@ -162,7 +155,7 @@ class HospitalServicesSeeder extends Seeder
                         • Bác sĩ dùng máy soi đặt ở ngoài soi vào trong âm đạo để quan sát.
                         • Nếu phát hiện tổn thương hay có nghi ngờ, bác sĩ sẽ chỉ định sinh thiết.</span>
                         <br /></p>',
-                        'location' => [19,29],
+                        'location' => [19, 29],
                     ]),
                 ],
                 [
@@ -180,21 +173,21 @@ class HospitalServicesSeeder extends Seeder
 
                         <span style="color: rgb(38, 38, 38); font-family: Inter, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, Oxygen, Ubuntu, Cantarell, &quot;Helvetica Neue&quot;, sans-serif; font-size: 16px; white-space: pre-line">Bác sĩ sẽ hướng dẫn bệnh nhân nằm trên giường đệm của máy đo. Quá trình đo thường diễn ra trong khoảng 20 - 30 phút. Sau quá trình đo, các y bác sĩ sẽ tiến hành đọc kết quả, so sánh các thông số và tư vấn về biện pháp phòng ngừa cũng như điều trị cho bệnh nhân.</span>
                         <br /></p>',
-                        'location' => [19,29],
+                        'location' => [19, 29],
                     ]),
                 ],
             ];
 
             $hospitals = User::where('role', 'hospital')->limit(3)->get();
-            foreach($hospitals as $index => $hospital) {
+            foreach ($hospitals as $index => $hospital) {
                 $ids = HospitalDepartment::where('id_hospital', $hospital->id)->get()->pluck('id');
                 foreach ($services as $index => $service) {
                     $data = array_merge(
                         $service,
                         [
                             'id_hospital_department' => $ids->random(),
-                            'time_advise' => random_int(1,4)*30,
-                            'price' => random_int(1,60)*50000,
+                            'time_advise' => random_int(1, 4) * 30,
+                            'price' => random_int(1, 60) * 50000,
                             'created_at' => now(),
                             'updated_at' => now(),
                         ]
@@ -202,7 +195,6 @@ class HospitalServicesSeeder extends Seeder
                     HospitalService::create($data);
                 }
             }
-
         } catch (\Exception $e) {
         }
     }

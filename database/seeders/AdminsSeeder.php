@@ -2,13 +2,9 @@
 
 namespace Database\Seeders;
 
-use App\Models\Category;
-use Illuminate\Database\Seeder;
-use Database\Factories\FakeImageFactory;
-use GuzzleHttp\Client;
-use Illuminate\Support\Facades\DB;
 use App\Models\Admin;
-use Illuminate\Database\Eloquent\Factories\Factory;
+use GuzzleHttp\Client;
+use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Hash;
 
@@ -21,7 +17,6 @@ class AdminsSeeder extends Seeder
      */
     public function run()
     {
-
         $pathFolder = 'public/storage/image/avatars/admins';
         if (!File::exists($pathFolder)) {
             File::makeDirectory($pathFolder, 0755, true);
