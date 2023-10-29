@@ -132,6 +132,7 @@ class AdminService
                 $data = array_merge($request->all(), ['avatar' => $avatar]);
                 $admin = $this->adminRepository->updateAdmin($admin->id, $data);
             } else {
+                $request['avatar'] = $admin->avatar;
                 $admin = $this->adminRepository->updateAdmin($admin->id, $request->all());
             }
             $message = 'Cập nhật thông tin tài khoản admin thành công !';

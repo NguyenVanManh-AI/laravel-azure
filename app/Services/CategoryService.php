@@ -78,6 +78,7 @@ class CategoryService
                 $data = array_merge($request->all(), ['thumbnail' => $thumbnail]);
                 $category = CategoryRepository::updateCategory($category->id, $data);
             } else {
+                $request['thumbnail'] = $category->thumbnail;
                 $category = CategoryRepository::updateCategory($category->id, $request->all());
             }
 

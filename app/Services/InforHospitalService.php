@@ -234,6 +234,7 @@ class InforHospitalService
                 $data = array_merge($request->all(), ['avatar' => $avatar]);
                 $user = UserRepository::updateUser($user->id, $data);
             } else {
+                $request['avatar'] = $user->avatar;
                 $user = UserRepository::updateUser($user->id, $request->all());
             }
 

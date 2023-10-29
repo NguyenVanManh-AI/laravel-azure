@@ -109,6 +109,7 @@ class ArticleService
                 $data = array_merge($request->all(), ['thumbnail' => $thumbnail]);
                 $article = $this->articleRepository->updateArticle($article, $data);
             } else {
+                $request['thumbnail'] = $article->thumbnail;
                 $article = $this->articleRepository->updateArticle($article, $request->all());
             }
             $article = $this->articleRepository->getRawArticle(['id' => $id])->first();

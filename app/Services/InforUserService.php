@@ -253,6 +253,7 @@ class InforUserService
                 $avatar = $this->saveAvatar($request);
                 $user = UserRepository::updateUser($user->id, array_merge($request->all(), ['avatar' => $avatar]));
             } else {
+                $request['avatar'] = $user->avatar;
                 $user = UserRepository::updateUser($user->id, $request->all());
             }
             $inforUser = InforUserRepository::getInforUser(['id_user' => $user->id])->first();

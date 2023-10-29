@@ -79,6 +79,7 @@ class DepartmentService
                     $data = array_merge($request->all(), ['thumbnail' => $thumbnail]);
                     $department = $this->departmentRepository->updateDepartment($department, $data);
                 } else {
+                    $request['thumbnail'] = $department->thumbnail;
                     $department = $this->departmentRepository->updateDepartment($department, $request->all());
                 }
 
