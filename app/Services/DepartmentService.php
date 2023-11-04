@@ -85,7 +85,7 @@ class DepartmentService
 
                 return $this->responseOK(200, $department, 'Cập nhật thông tin khoa thành công !');
             } else {
-                return $this->responseError(404, 'Không tìm thấy khoa !');
+                return $this->responseError(400, 'Không tìm thấy khoa !');
             }
         } catch (Throwable $e) {
             return $this->responseError(400, $e->getMessage());
@@ -115,7 +115,7 @@ class DepartmentService
 
                 return $this->responseOK(200, null, 'Xóa khoa thành công !');
             } else {
-                return $this->responseError(404, 'Không tìm thấy khoa !');
+                return $this->responseError(400, 'Không tìm thấy khoa !');
             }
         } catch (Throwable $e) {
             return $this->responseError(400, $e->getMessage());
@@ -129,7 +129,7 @@ class DepartmentService
             if ($request->id_hospital) {
                 $hospital = InforHospitalRepository::getInforHospital(['id_hospital' => $request->id_hospital])->first();
                 if (empty($hospital)) {
-                    return $this->responseError(404, 'Không tìm thấy bệnh viện !');
+                    return $this->responseError(400, 'Không tìm thấy bệnh viện !');
                 }
                 $hospitalDepartments = HospitalDepartmentRepository::searchHospitalDepartment(['id_hospital' => $request->id_hospital])->get();
                 $id_departments = [];
@@ -182,7 +182,7 @@ class DepartmentService
 
                 return $this->responseOK(200, $department, 'Xem chi tiết khoa thành công !');
             } else {
-                return $this->responseError(404, 'Không tìm thấy khoa !');
+                return $this->responseError(400, 'Không tìm thấy khoa !');
             }
         } catch (Throwable $e) {
             return $this->responseError(400, $e->getMessage());

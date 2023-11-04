@@ -135,7 +135,7 @@ class UserService
             $email = $request->email;
             $findUser = User::where('email', $email)->first();
             if (empty($findUser)) {
-                return $this->responseError(404, 'Không tìm thấy tài khoản trong hệ thống !');
+                return $this->responseError(400, 'Không tìm thấy tài khoản trong hệ thống !');
             }
 
             $token = Str::random(32);
@@ -172,7 +172,7 @@ class UserService
 
                     return $this->responseOK(200, null, 'Đặt lại mật khẩu thành công !');
                 } else {
-                    return $this->responseError(404, 'Không tìm thấy tài khoản !');
+                    return $this->responseError(400, 'Không tìm thấy tài khoản !');
                 }
             } else {
                 return $this->responseError(400, 'Token đã hết hạn !');
@@ -209,7 +209,7 @@ class UserService
         try {
             $user = UserRepository::findUserById($id);
             if (empty($user)) {
-                return $this->responseError(404, 'Không tìm thấy tài khoản !');
+                return $this->responseError(400, 'Không tìm thấy tài khoản !');
             }
             $inforUser = InforUserRepository::getInforUser(['id_user' => $user->id])->first();
             if ($user->role == 'hospital') {

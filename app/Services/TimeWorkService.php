@@ -112,7 +112,7 @@ class TimeWorkService
             // infor doctor
             $inforDoctor = InforDoctorRepository::getInforDoctor(['id_doctor' => $id_doctor])->first();
             if (empty($inforDoctor)) {
-                return $this->responseError(404, 'Không tìm thấy bác sĩ !');
+                return $this->responseError(400, 'Không tìm thấy bác sĩ !');
             }
 
             // time_advise
@@ -241,7 +241,7 @@ class TimeWorkService
             ];
             $hospitalServices = HospitalServiceRepository::searchAll($filter)->first();
             if (empty($hospitalServices)) {
-                return $this->responseError(404, 'Không tìm thấy dịch vụ trong bệnh viện !');
+                return $this->responseError(400, 'Không tìm thấy dịch vụ trong bệnh viện !');
             }
 
             // time_work

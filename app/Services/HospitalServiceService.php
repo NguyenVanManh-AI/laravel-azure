@@ -51,7 +51,7 @@ class HospitalServiceService
             $hospitalDepartment = HospitalDepartmentRepository::getHospitalDepartment($filter)->first();
 
             if (empty($hospitalDepartment)) {
-                return $this->responseError(404, 'Không tìm thấy khoa trong bệnh viện !');
+                return $this->responseError(400, 'Không tìm thấy khoa trong bệnh viện !');
             }
 
             // lúc lưu vào thì id_hospital_department của bảng sẽ là id của bảng ghi trong bảng hospital_department (chứ không phải là id_department)
@@ -75,7 +75,7 @@ class HospitalServiceService
             $user = auth()->guard('user_api')->user();
             $hospitalService = $this->hospitalService->findById($id);
             if (empty($hospitalService)) {
-                return $this->responseError(404, 'Không tìm thấy dịch vụ trong bệnh viện !');
+                return $this->responseError(400, 'Không tìm thấy dịch vụ trong bệnh viện !');
             }
 
             $filter = [
@@ -84,7 +84,7 @@ class HospitalServiceService
             ];
             $hospitalDepartment = HospitalDepartmentRepository::getHospitalDepartment($filter)->first();
             if (empty($hospitalDepartment)) {
-                return $this->responseError(404, 'Không tìm thấy khoa trong bệnh viện !');
+                return $this->responseError(400, 'Không tìm thấy khoa trong bệnh viện !');
             }
             $request->merge(['infor' => json_encode($request->infor)]);
             $hospitalService = $this->hospitalService->updateHospitalService($hospitalService, $request->all());
@@ -121,7 +121,7 @@ class HospitalServiceService
 
                 return $this->responseOK(200, null, $message);
             } else {
-                return $this->responseError(404, 'Không tìm thấy dịch vụ !');
+                return $this->responseError(400, 'Không tìm thấy dịch vụ !');
             }
         } catch (Throwable $e) {
             return response()->json(['message' => $e->getMessage()], 400);
@@ -193,7 +193,7 @@ class HospitalServiceService
         try {
             $user = UserRepository::findUserById($id);
             if (empty($user)) {
-                return $this->responseError(404, 'Không tìm thấy bệnh viện !');
+                return $this->responseError(400, 'Không tìm thấy bệnh viện !');
             }
 
             $search = $request->search;
@@ -261,7 +261,7 @@ class HospitalServiceService
         try {
             $user = UserRepository::findUserById($id);
             if (empty($user)) {
-                return $this->responseError(404, 'Không tìm thấy bệnh viện !');
+                return $this->responseError(400, 'Không tìm thấy bệnh viện !');
             }
 
             $search = $request->search;
@@ -360,7 +360,7 @@ class HospitalServiceService
 
                 return $this->responseOK(200, $hospitalServices, 'Xem dịch vụ chi tiết thành công !');
             } else {
-                return $this->responseError(404, 'Không tìm thấy dịch vụ trong bệnh viện !');
+                return $this->responseError(400, 'Không tìm thấy dịch vụ trong bệnh viện !');
             }
         } catch (Throwable $e) {
             return response()->json(['message' => $e->getMessage()], 400);
@@ -415,7 +415,7 @@ class HospitalServiceService
 
                 return $this->responseOK(200, $hospitalServices, 'Xem dịch vụ chi tiết thành công !');
             } else {
-                return $this->responseError(404, 'Không tìm thấy dịch vụ trong bệnh viện !');
+                return $this->responseError(400, 'Không tìm thấy dịch vụ trong bệnh viện !');
             }
         } catch (Throwable $e) {
             return response()->json(['message' => $e->getMessage()], 400);
@@ -471,7 +471,7 @@ class HospitalServiceService
 
                 return $this->responseOK(200, $moreRating, 'Xem dịch vụ chi tiết thành công !');
             } else {
-                return $this->responseError(404, 'Không tìm thấy dịch vụ trong bệnh viện !');
+                return $this->responseError(400, 'Không tìm thấy dịch vụ trong bệnh viện !');
             }
         } catch (Throwable $e) {
             return response()->json(['message' => $e->getMessage()], 400);

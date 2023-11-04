@@ -46,7 +46,7 @@ class PublicService
 
                         return $this->responseOK(200, $doctor, 'Tăng lượt tìm đọc cho bác sĩ thành công !');
                     } else {
-                        return $this->responseError(404, 'Không tìm thấy bác sĩ !');
+                        return $this->responseError(400, 'Không tìm thấy bác sĩ !');
                     }
                     break;
 
@@ -58,7 +58,7 @@ class PublicService
 
                         return $this->responseOK(200, $category, 'Tăng lượt tìm đọc cho danh mục thành công !');
                     } else {
-                        return $this->responseError(404, 'Không tìm thấy danh mục !');
+                        return $this->responseError(400, 'Không tìm thấy danh mục !');
                     }
                     break;
 
@@ -79,7 +79,7 @@ class PublicService
 
                             return $this->responseOK(200, $article, 'Tăng lượt tìm đọc cho bài viết thành công !');
                         } else {
-                            return $this->responseError(404, 'Không tìm thấy bài viết !');
+                            return $this->responseError(400, 'Không tìm thấy bài viết !');
                         }
                     } catch (Throwable $e) {
                         return $this->responseError(400, $e->getMessage());
@@ -99,7 +99,7 @@ class PublicService
 
                         return $this->responseOK(200, $hospital, 'Tăng lượt tìm đọc cho bệnh viện thành công !');
                     } else {
-                        return $this->responseError(404, 'Không tìm thấy bệnh viện !');
+                        return $this->responseError(400, 'Không tìm thấy bệnh viện !');
                     }
                     break;
 
@@ -111,12 +111,12 @@ class PublicService
 
                         return $this->responseOK(200, $department, 'Tăng lượt tìm đọc cho chuyên khoa thành công !');
                     } else {
-                        return $this->responseError(404, 'Không tìm thấy chuyên khoa !');
+                        return $this->responseError(400, 'Không tìm thấy chuyên khoa !');
                     }
                     break;
 
                 default:
-                    return $this->responseError(404, 'Không tìm thấy tên đối tượng cần tăng lượt tìm đọc !');
+                    return $this->responseError(400, 'Không tìm thấy tên đối tượng cần tăng lượt tìm đọc !');
                     break;
             }
         } catch (Throwable $e) {

@@ -42,7 +42,7 @@ class HealthInsuranceHospitalService
             $user = auth()->guard('user_api')->user();
             $healthInsurance = HealthInsuranceRepository::findById($request->id_health_insurance);
             if (empty($healthInsurance)) {
-                return $this->responseError(404, 'Không tìm thấy bảo hiểm !');
+                return $this->responseError(400, 'Không tìm thấy bảo hiểm !');
             }
 
             $data = [
@@ -67,7 +67,7 @@ class HealthInsuranceHospitalService
             ];
             $healInsurHos = $this->healInsurHosRepository->getHealInsurHos($filter)->first();
             if (empty($healInsurHos)) {
-                return $this->responseError(404, 'Không có bảo hiểm này trong danh sách chấp thuận !');
+                return $this->responseError(400, 'Không có bảo hiểm này trong danh sách chấp thuận !');
             }
             $healInsurHos->delete();
 
@@ -117,7 +117,7 @@ class HealthInsuranceHospitalService
             if (!empty($request->paginate)) {
                 $hospital = InforHospitalRepository::getInforHospital(['id_hospital' => $id])->first();
                 if (empty($hospital)) {
-                    return $this->responseError(404, 'Không tìm thấy bệnh viện !');
+                    return $this->responseError(400, 'Không tìm thấy bệnh viện !');
                 }
                 $healInsurHos = $this->healInsurHosRepository->searchHealInsurHos($filter)->paginate($request->paginate);
 
@@ -140,7 +140,7 @@ class HealthInsuranceHospitalService
             ];
             $healInsurHos = $this->healInsurHosRepository->searchHealInsurHos($filter)->first();
             if (empty($healInsurHos)) {
-                return $this->responseError(404, 'Không có bảo hiểm này trong danh sách chấp thuận !');
+                return $this->responseError(400, 'Không có bảo hiểm này trong danh sách chấp thuận !');
             }
 
             return $this->responseOK(200, $healInsurHos, 'Xem chi tiết bảo hiểm thành công !');

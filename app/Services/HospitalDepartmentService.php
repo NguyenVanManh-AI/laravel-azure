@@ -45,7 +45,7 @@ class HospitalDepartmentService
             $user = auth()->guard('user_api')->user();
             $department = DepartmentRepository::findById($request->id_department);
             if (empty($department)) {
-                return $this->responseError(404, 'Không tìm thấy khoa !');
+                return $this->responseError(400, 'Không tìm thấy khoa !');
             }
 
             $data = array_merge($request->all(), ['id_hospital' => $user->id]);
@@ -63,7 +63,7 @@ class HospitalDepartmentService
             $user = auth()->guard('user_api')->user();
             $hospitalDepartment = $this->hospitalDepartment->findById($id);
             if (empty($hospitalDepartment)) {
-                return $this->responseError(404, 'Không tìm thấy khoa này của bệnh viện !');
+                return $this->responseError(400, 'Không tìm thấy khoa này của bệnh viện !');
             }
 
             if ($user->id != $hospitalDepartment->id_hospital) {
@@ -84,7 +84,7 @@ class HospitalDepartmentService
             $user = auth()->guard('user_api')->user();
             $hospitalDepartment = $this->hospitalDepartment->findById($id);
             if (empty($hospitalDepartment)) {
-                return $this->responseError(404, 'Không tìm thấy khoa trong bệnh viện !');
+                return $this->responseError(400, 'Không tìm thấy khoa trong bệnh viện !');
             }
 
             if ($user->id != $hospitalDepartment->id_hospital) {
@@ -116,7 +116,7 @@ class HospitalDepartmentService
         try {
             $hospital = InforHospitalRepository::getInforHospital(['id_hospital' => $id])->first();
             if (empty($hospital)) {
-                return $this->responseError(404, 'Không tìm thấy bệnh viện !');
+                return $this->responseError(400, 'Không tìm thấy bệnh viện !');
             }
 
             $orderBy = 'hospital_departments.id';
@@ -159,7 +159,7 @@ class HospitalDepartmentService
             ];
             $hospitalDepartment = $this->hospitalDepartment->searchHospitalDepartment($filter)->first();
             if (empty($hospitalDepartment)) {
-                return $this->responseError(404, 'Không tìm thấy khoa trong bệnh viện !');
+                return $this->responseError(400, 'Không tìm thấy khoa trong bệnh viện !');
             }
 
             return $this->responseOK(200, $hospitalDepartment, 'Xem chi tiết khoa của bệnh viện thành công !');

@@ -102,7 +102,7 @@ class WorkScheduleService
             ];
             $hospitalServices = HospitalServiceRepository::searchAll($filter)->first();
             if (empty($hospitalServices)) {
-                return $this->responseError(404, 'Không tìm thấy dịch vụ trong bệnh viện !');
+                return $this->responseError(400, 'Không tìm thấy dịch vụ trong bệnh viện !');
             }
             // all doctor of Department of Hospital of Service Hospital
             // lấy ra danh sách id tất cả các bác sĩ của chuyên khoa chứa dịch vụ đó
@@ -161,11 +161,11 @@ class WorkScheduleService
             ];
             $workSchedule = $this->workScheduleRepository->searchWorkSchedule($filter)->first();
             if (empty($workSchedule)) {
-                return $this->responseError(404, 'Không tìm thấy dịch vụ !');
+                return $this->responseError(400, 'Không tìm thấy dịch vụ !');
             }
 
             if ($workSchedule->doctor_id != null) {
-                return $this->responseError(404, 'Dịch vụ này đã có bác sĩ thực hiện !');
+                return $this->responseError(400, 'Dịch vụ này đã có bác sĩ thực hiện !');
             } else {
                 $time = json_decode($workSchedule->work_schedule_time);
                 $filter = (object) [
@@ -218,7 +218,7 @@ class WorkScheduleService
             ];
             $workSchedule = $this->workScheduleRepository->searchWorkSchedule($filter)->first();
             if (empty($workSchedule)) {
-                return $this->responseError(404, 'Không tìm thấy lịch tư vấn hay dịch vụ !');
+                return $this->responseError(400, 'Không tìm thấy lịch tư vấn hay dịch vụ !');
             }
 
             if ($workSchedule->doctor_id != null) {
@@ -227,15 +227,15 @@ class WorkScheduleService
 
             $doctor = InforDoctor::where('id_doctor', $id_doctor)->first();
             if (empty($doctor)) {
-                return $this->responseError(404, 'Không tìm thấy bác sĩ !');
+                return $this->responseError(400, 'Không tìm thấy bác sĩ !');
             }
 
             if ($doctor->id_hospital != $hospital->id) {
-                return $this->responseError(404, 'Bác sĩ không thuộc bệnh viện này !');
+                return $this->responseError(400, 'Bác sĩ không thuộc bệnh viện này !');
             }
 
             if ($doctor->id_department != $workSchedule->department_id) {
-                return $this->responseError(404, 'Bác sĩ không nằm trong chuyên khoa của dịch vụ !');
+                return $this->responseError(400, 'Bác sĩ không nằm trong chuyên khoa của dịch vụ !');
             }
 
             $time = json_decode($workSchedule->work_schedule_time);
@@ -471,7 +471,7 @@ class WorkScheduleService
         try {
             $workSchedule = $this->workScheduleRepository->findById($id_work_schedule);
             if (empty($workSchedule)) {
-                return $this->responseError(404, 'Không tìm thấy lịch tư vấn hay dịch vụ !');
+                return $this->responseError(400, 'Không tìm thấy lịch tư vấn hay dịch vụ !');
             }
 
             $user = Auth::user();
@@ -522,7 +522,7 @@ class WorkScheduleService
             ];
             $workSchedule = $this->workScheduleRepository->searchWorkSchedule($filter)->first();
             if (empty($workSchedule)) {
-                return $this->responseError(404, 'Không tìm thấy lịch tư vấn hay dịch vụ !');
+                return $this->responseError(400, 'Không tìm thấy lịch tư vấn hay dịch vụ !');
             }
 
             // gửi mail đến bác sĩ , bệnh viện , người dùng
@@ -583,7 +583,7 @@ class WorkScheduleService
 
             return $this->responseOK(200, null, 'Hủy nhiều lịch thành công !');
         } catch (Throwable $e) {
-            return $this->responseError(404, $e->getMessage());
+            return $this->responseError(400, $e->getMessage());
         }
     }
 
@@ -624,7 +624,7 @@ class WorkScheduleService
 
             return $this->responseOK(200, null, 'Hủy nhiều lịch thành công !');
         } catch (Throwable $e) {
-            return $this->responseError(404, $e->getMessage());
+            return $this->responseError(400, $e->getMessage());
         }
     }
 }

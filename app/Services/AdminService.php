@@ -268,7 +268,7 @@ class AdminService
             $email = $request->email;
             $findAdmin = Admin::where('email', $email)->first();
             if (empty($findAdmin)) {
-                return $this->responseError(404, 'Không tìm thấy tài khoản trong hệ thống !');
+                return $this->responseError(400, 'Không tìm thấy tài khoản trong hệ thống !');
             }
 
             $token = Str::random(32);
@@ -304,7 +304,7 @@ class AdminService
 
                     return $this->responseOK(200, null, 'Đặt lại mật khẩu thành công !');
                 } else {
-                    return $this->responseError(404, 'Không tìm thấy tài khoản !');
+                    return $this->responseError(400, 'Không tìm thấy tài khoản !');
                 }
             } else {
                 return $this->responseError(400, 'Token đã hết hạn !');

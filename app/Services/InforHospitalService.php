@@ -278,7 +278,7 @@ class InforHospitalService
         try {
             $department = DepartmentRepository::findById($request->id_department);
             if (empty($department)) {
-                return $this->responseError(404, 'Không tìm thấy khoa !');
+                return $this->responseError(400, 'Không tìm thấy khoa !');
             }
             $hospital = UserRepository::findUserById(auth('user_api')->user()->id);
 
@@ -437,7 +437,7 @@ class InforHospitalService
         try {
             $user = UserRepository::findUserById($id);
             if (empty($user) || $user->role != 'hospital') {
-                return $this->responseError(404, 'Không tìm thấy bệnh viện !');
+                return $this->responseError(400, 'Không tìm thấy bệnh viện !');
             }
 
             $search = $request->search;
@@ -553,7 +553,7 @@ class InforHospitalService
         try {
             $province = ProvinceRepository::getProvince(['province_code' => $province_code])->get();
             if (count($province) <= 0) {
-                return $this->responseError(404, 'Không tìm thấy mã tỉnh thành !');
+                return $this->responseError(400, 'Không tìm thấy mã tỉnh thành !');
             }
             // không dùng empty vì get rỗng cũng không phải empty
             $filter = (object) [
@@ -581,7 +581,7 @@ class InforHospitalService
             ];
             $doctor = InforDoctorRepository::getInforDoctor($filter)->first();
             if (empty($doctor)) {
-                return $this->responseError(404, 'Không tìm bác sĩ trong bệnh viện !');
+                return $this->responseError(400, 'Không tìm bác sĩ trong bệnh viện !');
             }
 
             $data = ['is_confirm' => $request->is_confirm];

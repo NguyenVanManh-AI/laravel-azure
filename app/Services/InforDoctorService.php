@@ -100,7 +100,7 @@ class InforDoctorService
             // hospital
             $user = UserRepository::findUserById($id_hospital);
             if (empty($user) || $user->role != 'hospital') {
-                return $this->responseError(404, 'Không tìm thấy bệnh viện !');
+                return $this->responseError(400, 'Không tìm thấy bệnh viện !');
             }
 
             // hospitalDepartment
@@ -110,7 +110,7 @@ class InforDoctorService
             ])->first();
 
             if (empty($hospitalDepartment)) {
-                return $this->responseError(404, 'Không tìm thấy khoa trong bệnh viện !');
+                return $this->responseError(400, 'Không tìm thấy khoa trong bệnh viện !');
             }
 
             $filter = (object) [

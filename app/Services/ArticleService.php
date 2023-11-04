@@ -56,7 +56,7 @@ class ArticleService
         try {
             $category = CategoryRepository::getCategory(['id' => $request->id_category])->first();
             if (empty($category)) {
-                return $this->responseError(404, 'Danh mục không tồn tại !');
+                return $this->responseError(400, 'Danh mục không tồn tại !');
             }
             $article = $this->articleRepository->createArticle($request->all());
             $thumbnail = $this->saveAvatar($request);
@@ -91,7 +91,7 @@ class ArticleService
             $user = Auth::user();
             $article = $this->articleRepository->findById($id);
             if (empty($article)) {
-                return $this->responseError(404, 'Không tìm thấy bài viết !');
+                return $this->responseError(400, 'Không tìm thấy bài viết !');
             }
 
             if (in_array($user->role, ['doctor', 'hospital']) && ($user->id != $article->id_user)) {
@@ -126,7 +126,7 @@ class ArticleService
             $user = Auth::user();
             $article = $this->articleRepository->findById($id);
             if (empty($article)) {
-                return $this->responseError(404, 'Không tìm thấy bài viết !');
+                return $this->responseError(400, 'Không tìm thấy bài viết !');
             }
 
             if (in_array($user->role, ['doctor', 'hospital']) && ($user->id != $article->id_user)) {
@@ -172,7 +172,7 @@ class ArticleService
 
             return $this->responseOK(200, null, 'Xóa nhiều bài viết thành công !');
         } catch (Throwable $e) {
-            return $this->responseError(404, $e->getMessage());
+            return $this->responseError(400, $e->getMessage());
         }
     }
 
@@ -182,7 +182,7 @@ class ArticleService
             $user = Auth::user();
             $articlePrivate = $this->articleRepository->findById($id);
             if (empty($articlePrivate)) {
-                return $this->responseError(404, 'Không tìm thấy bài viết !');
+                return $this->responseError(400, 'Không tìm thấy bài viết !');
             }
 
             if (($user->role == 'doctor') && ($user->id != $articlePrivate->id_user)) {
@@ -215,7 +215,7 @@ class ArticleService
             $user = Auth::user();
             $articlePrivate = $this->articleRepository->findById($id);
             if (empty($articlePrivate)) {
-                return $this->responseError(404, 'Không tìm thấy bài viết !');
+                return $this->responseError(400, 'Không tìm thấy bài viết !');
             }
 
             $doctors = InforDoctorRepository::getInforDoctor(['id_hospital' => $user->id])->get();
@@ -288,7 +288,7 @@ class ArticleService
         try {
             $user = UserRepository::findUserById(auth('user_api')->user()->id);
             if (empty($user)) {
-                return $this->responseError(404, 'Không tìm thấy người dùng !');
+                return $this->responseError(400, 'Không tìm thấy người dùng !');
             }
 
             $doctors = InforDoctorRepository::getInforDoctor(['id_hospital' => $user->id])->get();
@@ -345,7 +345,7 @@ class ArticleService
         try {
             $user = UserRepository::findUserById(auth('user_api')->user()->id);
             if (empty($user)) {
-                return $this->responseError(404, 'Không tìm thấy người dùng !');
+                return $this->responseError(400, 'Không tìm thấy người dùng !');
             }
 
             $name_category = '';
@@ -456,7 +456,7 @@ class ArticleService
 
                 return $this->responseOK(200, $article, 'Xem bài viết chi tiết thành công !');
             } else {
-                return $this->responseError(404, 'Không tìm thấy bài viết !');
+                return $this->responseError(400, 'Không tìm thấy bài viết !');
             }
         } catch (Throwable $e) {
             return $this->responseError(400, $e->getMessage());
@@ -469,7 +469,7 @@ class ArticleService
             $user = Auth::user();
             $articlePrivate = $this->articleRepository->findById($id);
             if (empty($articlePrivate)) {
-                return $this->responseError(404, 'Không tìm thấy bài viết !');
+                return $this->responseError(400, 'Không tìm thấy bài viết !');
             }
 
             if ($articlePrivate->is_accept != 1 || $articlePrivate->is_show != 1) {

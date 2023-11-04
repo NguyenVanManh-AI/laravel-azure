@@ -103,7 +103,7 @@ class CategoryService
 
                 return $this->responseOK(200, null, 'Xóa danh mục thành công !');
             } else {
-                return $this->responseError(404, 'Không tìm thấy danh mục !');
+                return $this->responseError(400, 'Không tìm thấy danh mục !');
             }
         } catch (Throwable $e) {
             return $this->responseError(400, $e->getMessage());
@@ -132,7 +132,7 @@ class CategoryService
 
                 return $this->responseOK(200, null, 'Xóa các danh mục thành công!');
             } else {
-                return $this->responseError(404, 'Không tìm thấy danh mục nào để xóa.');
+                return $this->responseError(400, 'Không tìm thấy danh mục nào để xóa.');
             }
         } catch (Throwable $e) {
             // Ghi log lỗi hoặc trả về thông báo lỗi
@@ -187,7 +187,7 @@ class CategoryService
 
                 return $this->responseOK(200, $category, 'Xem danh mục chi tiết thành công !');
             } else {
-                return $this->responseError(404, 'Không tìm thấy danh mục !');
+                return $this->responseError(400, 'Không tìm thấy danh mục !');
             }
         } catch (Throwable $e) {
             return $this->responseError(400, $e->getMessage());
