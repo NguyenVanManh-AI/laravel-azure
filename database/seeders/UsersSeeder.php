@@ -87,7 +87,7 @@ class UsersSeeder extends Seeder
                             $hospital,
                             [
                                 'role' => 'hospital',
-                                'password' => Hash::make('hospital999'),
+                                'password' => Hash::make('123456'),
                                 'avatar' => 'storage/image/avatars/hospitals/' . $nameImage,
                                 'is_accept' => 1,
                                 'token_verify_email' => null,
@@ -220,7 +220,7 @@ class UsersSeeder extends Seeder
                             $user,
                             [
                                 'role' => 'user',
-                                'password' => Hash::make('user999'),
+                                'password' => Hash::make('123456'),
                                 'avatar' => 'storage/image/avatars/users/' . $nameImage,
                                 'is_accept' => 1,
                                 'token_verify_email' => null,

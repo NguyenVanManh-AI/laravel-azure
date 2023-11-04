@@ -151,7 +151,7 @@ class DoctorsSeeder extends Seeder
                                 $doctor,
                                 [
                                     'role' => 'doctor',
-                                    'password' => Hash::make('doctor999'),
+                                    'password' => Hash::make('123456'),
                                     'avatar' => 'storage/image/avatars/doctors/' . $nameImage,
                                     'is_accept' => 1,
                                     'token_verify_email' => null,

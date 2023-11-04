@@ -15,7 +15,7 @@ return new class extends Migration
     {
         Schema::create('work_schedules', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('id_doctor');
+            $table->unsignedBigInteger('id_doctor')->nullable();
             $table->unsignedBigInteger('id_user');
             $table->unsignedBigInteger('id_service')->nullable();
             $table->double('price', 15, 2);

@@ -166,17 +166,16 @@ class TimeWorkService
                 if ($timeWork->times->$dayOfWeek->enable == false) {
                     // $timeWork->times->$dayOfWeek = null; // bỏ ngày đó ra khỏi lịch luôn
                 } else {
-                    $time = [];
-                    $time['date'] = $timeWork->times->$dayOfWeek->date;
+                    $time = (object) [];
+                    $time->date = $timeWork->times->$dayOfWeek->date;
 
                     // morning
                     $newDividedTimes = [];
                     foreach ($timeWork->times->$dayOfWeek->morning->divided_times as $index => $interval) {
-                        $time['interval'] = $interval;
+                        $time->interval = $interval;
                         $filter = [
+                            'id_doctors' => [$id_doctor],
                             'time' => $time,
-                            'id_doctor' => $id_doctor,
-                            'id_service' => 'advise',
                         ];
                         $n = WorkScheduleRepository::getWorkSchedule($filter)->count();
                         if ($n == 0) {
@@ -188,11 +187,10 @@ class TimeWorkService
                     // afternoon
                     $newDividedTimes = [];
                     foreach ($timeWork->times->$dayOfWeek->afternoon->divided_times as $index => $interval) {
-                        $time['interval'] = $interval;
+                        $time->interval = $interval;
                         $filter = [
+                            'id_doctors' => [$id_doctor],
                             'time' => $time,
-                            'id_doctor' => $id_doctor,
-                            'id_service' => 'advise',
                         ];
                         $n = WorkScheduleRepository::getWorkSchedule($filter)->count();
                         if ($n == 0) {
@@ -204,11 +202,10 @@ class TimeWorkService
                     // night
                     $newDividedTimes = [];
                     foreach ($timeWork->times->$dayOfWeek->night->divided_times as $index => $interval) {
-                        $time['interval'] = $interval;
+                        $time->interval = $interval;
                         $filter = [
+                            'id_doctors' => [$id_doctor],
                             'time' => $time,
-                            'id_doctor' => $id_doctor,
-                            'id_service' => 'advise',
                         ];
                         $n = WorkScheduleRepository::getWorkSchedule($filter)->count();
                         if ($n == 0) {
@@ -218,8 +215,6 @@ class TimeWorkService
                     $timeWork->times->$dayOfWeek->night->divided_times = $newDividedTimes;
                 }
             }
-
-            // BỔ SUNG : loại bỏ đi ngày (shift of = 4) hoặc các ca của mà bác sĩ xin nghỉ trong vacations chedule
 
             // bổ sung một số thông tin khác . space = còn chỗ của ngày đó
             foreach ($daysOfWeek as $dayOfWeek) {

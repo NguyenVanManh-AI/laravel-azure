@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Http\Requests\RequestCreateHospitalDepartment;
 use App\Http\Requests\RequestUpdateHospitalDepartment;
+use App\Models\InforDoctor;
 use App\Repositories\DepartmentRepository;
 use App\Repositories\HospitalDepartmentInterface;
 use App\Repositories\HospitalServiceRepository;
@@ -90,9 +91,16 @@ class HospitalDepartmentService
                 return $this->responseError(403, 'Bạn không có quyền !');
             }
 
+            // dịch vụ
             $count = HospitalServiceRepository::getHospitalService(['id_hospital_department' => $id])->count();
             if ($count > 0) {
                 return $this->responseError(400, 'Khoa này đang có dịch vụ , bạn không được xóa nó !');
+            }
+
+            // bác sĩ thuộc khoa
+            $count = InforDoctor::where('id_department', $hospitalDepartment->id_department)->count();
+            if ($count > 0) {
+                return $this->responseError(400, 'Khoa này đang có bác sĩ , bạn không được xóa nó !');
             }
 
             $hospitalDepartment->delete();

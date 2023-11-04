@@ -19,6 +19,10 @@ class WorkSchedule extends Model
         'content',
     ];
 
+    protected $hidden = [
+        'password',
+    ];
+
     public function inforUser()
     {
         return $this->belongsTo(InforUser::class);

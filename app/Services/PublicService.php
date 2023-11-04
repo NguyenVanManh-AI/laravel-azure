@@ -173,6 +173,7 @@ class PublicService
             $search = $request->search ?? '';
             $filter = (object) [
                 'search' => $search,
+                'is_delete' => 0,
                 'province_code' => $request->province_code ?? null,
                 // không nên code như sau : 'province_code' => $request->province_code ?? '',
             ];

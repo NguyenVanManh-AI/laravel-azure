@@ -25,6 +25,11 @@ class HealthInsuranceHospitalController extends Controller
         return $this->healInsurHosService->delete($id);
     }
 
+    public function deleteMany(Request $request)
+    {
+        return $this->healInsurHosService->deleteMany($request);
+    }
+
     public function ofHospital(Request $request, $id)
     {
         return $this->healInsurHosService->ofHospital($request, $id);

@@ -3,10 +3,13 @@
 namespace App\Services;
 
 use App\Http\Requests\RequestCreateHospitalService;
+use App\Http\Requests\RequestStatusService;
 use App\Http\Requests\RequestUpdateHospitalService;
+use App\Models\Rating;
 use App\Models\WorkSchedule;
 use App\Repositories\HospitalDepartmentRepository;
 use App\Repositories\HospitalServiceInterface;
+use App\Repositories\RatingRepository;
 use App\Repositories\UserRepository;
 use Illuminate\Http\Request;
 use Throwable;
@@ -53,7 +56,10 @@ class HospitalServiceService
 
             // lúc lưu vào thì id_hospital_department của bảng sẽ là id của bảng ghi trong bảng hospital_department (chứ không phải là id_department)
             // vì chỉ cần lấy ra được id của hospital_department là lấy ra được nó của bệnh viện nào và khoa gì
-            $request->merge(['infor' => json_encode($request->infor)]);
+            $request->merge([
+                'infor' => json_encode($request->infor),
+                'is_delete' => 0,
+            ]);
             $hospitalService = $this->hospitalService->createHospitalService($request->all());
             $hospitalService->infor = json_decode($hospitalService->infor);
 
@@ -90,11 +96,13 @@ class HospitalServiceService
         }
     }
 
-    public function delete($id)
+    public function changeStatus(RequestStatusService $request)
     {
         try {
+            $id_service = $request->id_service;
+            $is_delete = $request->is_delete;
             $user = auth()->guard('user_api')->user();
-            $hospitalService = $this->hospitalService->findById($id);
+            $hospitalService = $this->hospitalService->findById($id_service);
             if ($hospitalService) {
                 $filter = [
                     'id' => $hospitalService->id_hospital_department,
@@ -104,21 +112,77 @@ class HospitalServiceService
                 if (empty($hospitalDepartment)) {
                     return $this->responseError(403, 'Bạn không có quyền xóa !');
                 }
-                // kiểm tra có workSchedule có id_service là nó không
-                // nếu có thì workSchedule đã được làm chưa (time của workSchedule nhỏ hơn thời gian hiện tại là được)
-                // sau đó mới xóa . tạm thời cứ check có hay chưa đã
-                // khi nào làm đến bảng WorkSchedule thì quay lại
-                $count = WorkSchedule::where('id_service', $hospitalService->id)->count();
 
-                if ($count > 0) {
-                    return $this->responseError(400, 'Dịch vụ này đang được đặt , bạn không được xóa nó !');
+                $hospitalService->update(['is_delete' => $is_delete]);
+                $message = 'Xóa dịch vụ thành công !';
+                if ($is_delete == 0) {
+                    $message = 'Khôi phục dịch vụ thành công !';
                 }
-                $hospitalService->delete();
 
-                return $this->responseOK(200, null, 'Xóa dịch vụ thành công !');
+                return $this->responseOK(200, null, $message);
             } else {
                 return $this->responseError(404, 'Không tìm thấy dịch vụ !');
             }
+        } catch (Throwable $e) {
+            return response()->json(['message' => $e->getMessage()], 400);
+        }
+    }
+
+    public function hospitalManage(Request $request)
+    {
+        try {
+            $user = auth()->guard('user_api')->user();
+            $search = $request->search;
+            $orderBy = 'id_hospital_service';
+            $orderDirection = 'ASC';
+
+            if ($request->sortlatest == 'true') {
+                $orderBy = 'id_hospital_service';
+                $orderDirection = 'DESC';
+            }
+
+            if ($request->sortname == 'true') {
+                $orderBy = 'hospital_services.name';
+                $orderDirection = ($request->sortlatest == 'true') ? 'DESC' : 'ASC';
+            }
+
+            $filter = (object) [
+                'search' => $search,
+                'orderBy' => $orderBy,
+                'orderDirection' => $orderDirection,
+                'id_hospital' => $user->id,
+                'is_delete' => $request->is_delete ?? null, // null = all ; 1 = đã xóa ; 0 = chưa xóa
+            ];
+
+            if (!empty($request->paginate)) {
+                $hospitalServices = $this->hospitalService->searchAll($filter)->paginate($request->paginate);
+            } else {
+                $hospitalServices = $this->hospitalService->searchAll($filter)->get();
+            }
+
+            foreach ($hospitalServices as $index => $service) {
+                $service->infor = json_decode($service->infor);
+
+                // rating
+                $workSchedules = WorkSchedule::where('id_service', $service->id_hospital_service)->get();
+                $cout_rating = 0;
+                $sum_rating = 0;
+                $service->cout_rating = 0;
+                $service->number_rating = 0;
+                if (count($workSchedules) > 0) {
+                    foreach ($workSchedules as $index => $workSchedule) {
+                        $rating = Rating::where('id_work_schedule', $workSchedule->id)->first();
+                        if (!empty($rating)) {
+                            $cout_rating += 1;
+                            $sum_rating += $rating->number_rating;
+                        }
+                    }
+                    $service->cout_rating = $cout_rating;
+                    $service->number_rating = ($cout_rating != 0) ? round($sum_rating / $cout_rating, 1) : 0;
+                }
+            }
+
+            return $this->responseOK(200, $hospitalServices, 'Xem tất cả dịch vụ của bệnh viện thành công !');
         } catch (Throwable $e) {
             return response()->json(['message' => $e->getMessage()], 400);
         }
@@ -151,7 +215,75 @@ class HospitalServiceService
                 'orderBy' => $orderBy,
                 'orderDirection' => $orderDirection,
                 'id_hospital' => $user->id,
-                'is_delete' => $request->is_delete ?? null, // null = all ; 1 = đã xóa ; 0 = chưa xóa
+                'is_delete' => 0,
+            ];
+
+            if (!empty($request->paginate)) {
+                $hospitalServices = $this->hospitalService->searchAll($filter)->paginate($request->paginate);
+                foreach ($hospitalServices as $index => $hospitalService) {
+                    $hospitalService->infor = json_decode($hospitalService->infor);
+                }
+            } else { // all
+                $hospitalServices = $this->hospitalService->searchAll($filter)->get();
+                foreach ($hospitalServices as $index => $hospitalService) {
+                    $hospitalService->infor = json_decode($hospitalService->infor);
+                }
+            }
+
+            // rating
+            foreach ($hospitalServices as $index => $service) {
+                $workSchedules = WorkSchedule::where('id_service', $service->id_hospital_service)->get();
+                $cout_rating = 0;
+                $sum_rating = 0;
+                $service->cout_rating = 0;
+                $service->number_rating = 0;
+                if (count($workSchedules) > 0) {
+                    foreach ($workSchedules as $index => $workSchedule) {
+                        $rating = Rating::where('id_work_schedule', $workSchedule->id)->first();
+                        if (!empty($rating)) {
+                            $cout_rating += 1;
+                            $sum_rating += $rating->number_rating;
+                        }
+                    }
+                    $service->cout_rating = $cout_rating;
+                    $service->number_rating = ($cout_rating != 0) ? round($sum_rating / $cout_rating, 1) : 0;
+                }
+            }
+
+            return $this->responseOK(200, $hospitalServices, 'Xem tất cả dịch vụ của bệnh viện thành công !');
+        } catch (Throwable $e) {
+            return response()->json(['message' => $e->getMessage()], 400);
+        }
+    }
+
+    public function serviceOfHospitalSelect(Request $request, $id)
+    {
+        try {
+            $user = UserRepository::findUserById($id);
+            if (empty($user)) {
+                return $this->responseError(404, 'Không tìm thấy bệnh viện !');
+            }
+
+            $search = $request->search;
+            $orderBy = 'id_hospital_service';
+            $orderDirection = 'ASC';
+
+            if ($request->sortlatest == 'true') {
+                $orderBy = 'id_hospital_service';
+                $orderDirection = 'DESC';
+            }
+
+            if ($request->sortname == 'true') {
+                $orderBy = 'hospital_services.name';
+                $orderDirection = ($request->sortlatest == 'true') ? 'DESC' : 'ASC';
+            }
+
+            $filter = (object) [
+                'search' => $search,
+                'orderBy' => $orderBy,
+                'orderDirection' => $orderDirection,
+                'id_hospital' => $user->id,
+                'is_delete' => 0,
             ];
 
             if (!empty($request->paginate)) {
@@ -172,9 +304,11 @@ class HospitalServiceService
         }
     }
 
-    public function details(Request $request, $id)
+    public function detailManage(Request $request, $id)
     {
         try {
+            $request->merge(['page' => 1]); // tránh cho việc người dùng cho page = 2 thì nó sẽ ảnh hưởng đến
+            // phân trang ở ratings ở dưới
             $filter = (object) [
                 'id_hospital_services' => $id,
             ];
@@ -182,7 +316,160 @@ class HospitalServiceService
             if ($hospitalServices) {
                 $hospitalServices->infor = json_decode($hospitalServices->infor);
 
+                // ratings
+                $workSchedules = WorkSchedule::where('id_service', $hospitalServices->id_hospital_service)->get();
+                $idWorkSchedules = $workSchedules->pluck('id')->toArray();
+
+                $cout_rating = 0;
+                $sum_rating = 0;
+                $hospitalServices->cout_rating = 0;
+                $hospitalServices->number_rating = 0;
+                $hospitalServices->cout_details = null;
+                $hospitalServices->ratings = null;
+                if (count($workSchedules) > 0) {
+                    $filter = (object) [
+                        'list_id_work_schedule' => $idWorkSchedules,
+                    ];
+                    $ratings = RatingRepository::getRating($filter)->paginate(6);
+                    $hospitalServices->ratings = $ratings;
+
+                    $cout_details = [];
+                    for ($i = 1; $i <= 5; $i++) {
+                        $filter->number_rating = $i;
+                        // $cout_detail[] = RatingRepository::getRating($filter)->count();
+                        $cout_details["{$i}_star"] = RatingRepository::getRating($filter)->count();
+                    }
+                    $hospitalServices->cout_details = $cout_details;
+
+                    foreach ($cout_details as $key => $count) {
+                        $rating = (int) $key; // Convert the key to an integer
+                        $cout_rating += $count;
+                        $sum_rating += $rating * $count;
+                    }
+
+                    // foreach ($workSchedules as $index => $workSchedule) {
+                    //     $rating = Rating::where('id_work_schedule', $workSchedule->id)->first();
+                    //     if(!empty($rating)) {
+                    //         $cout_rating += 1;
+                    //         $sum_rating += $rating->number_rating;
+                    //     }
+                    // }
+                    $hospitalServices->cout_rating = $cout_rating;
+                    $hospitalServices->number_rating = ($cout_rating != 0) ? round($sum_rating / $cout_rating, 1) : 0;
+                }
+
                 return $this->responseOK(200, $hospitalServices, 'Xem dịch vụ chi tiết thành công !');
+            } else {
+                return $this->responseError(404, 'Không tìm thấy dịch vụ trong bệnh viện !');
+            }
+        } catch (Throwable $e) {
+            return response()->json(['message' => $e->getMessage()], 400);
+        }
+    }
+
+    public function details(Request $request, $id)
+    {
+        try {
+            $request->merge(['page' => 1]); // tránh cho việc người dùng cho page = 2 thì nó sẽ ảnh hưởng đến
+            // phân trang ở ratings ở dưới
+            $filter = (object) [
+                'id_hospital_services' => $id,
+                'is_delete' => 0,
+            ];
+            $hospitalServices = $this->hospitalService->searchAll($filter)->first();
+            if ($hospitalServices) {
+                $hospitalServices->infor = json_decode($hospitalServices->infor);
+
+                // ratings
+                $workSchedules = WorkSchedule::where('id_service', $hospitalServices->id_hospital_service)->get();
+                $idWorkSchedules = $workSchedules->pluck('id')->toArray();
+
+                $cout_rating = 0;
+                $sum_rating = 0;
+                $hospitalServices->cout_rating = 0;
+                $hospitalServices->number_rating = 0;
+                $hospitalServices->cout_details = null;
+                $hospitalServices->ratings = null;
+                if (count($workSchedules) > 0) {
+                    $filter = (object) [
+                        'list_id_work_schedule' => $idWorkSchedules,
+                    ];
+                    $ratings = RatingRepository::getRating($filter)->paginate(6);
+                    $hospitalServices->ratings = $ratings;
+
+                    $cout_details = [];
+                    for ($i = 1; $i <= 5; $i++) {
+                        $filter->number_rating = $i;
+                        $cout_details["{$i}_star"] = RatingRepository::getRating($filter)->count();
+                    }
+                    $hospitalServices->cout_details = $cout_details;
+
+                    foreach ($cout_details as $key => $count) {
+                        $rating = (int) $key;
+                        $cout_rating += $count;
+                        $sum_rating += $rating * $count;
+                    }
+                    $hospitalServices->cout_rating = $cout_rating;
+                    $hospitalServices->number_rating = ($cout_rating != 0) ? round($sum_rating / $cout_rating, 1) : 0;
+                }
+
+                return $this->responseOK(200, $hospitalServices, 'Xem dịch vụ chi tiết thành công !');
+            } else {
+                return $this->responseError(404, 'Không tìm thấy dịch vụ trong bệnh viện !');
+            }
+        } catch (Throwable $e) {
+            return response()->json(['message' => $e->getMessage()], 400);
+        }
+    }
+
+    public function moreRating(Request $request, $id_service)
+    {
+        try {
+            $filter = (object) [
+                'id_hospital_services' => $id_service,
+                'is_delete' => 0,
+            ];
+            $hospitalServices = $this->hospitalService->searchAll($filter)->first();
+            if ($hospitalServices) {
+                $moreRating = (object) [];
+
+                // ratings
+                $workSchedules = WorkSchedule::where('id_service', $hospitalServices->id_hospital_service)->get();
+                $idWorkSchedules = $workSchedules->pluck('id')->toArray();
+
+                $cout_rating = 0;
+                $sum_rating = 0;
+                $moreRating->cout_rating = 0;
+                $moreRating->number_rating = 0;
+                $moreRating->cout_details = null;
+                $moreRating->ratings = null;
+                if (count($workSchedules) > 0) {
+                    $filter = (object) [
+                        'list_id_work_schedule' => $idWorkSchedules,
+                    ];
+
+                    $page = $request->page;
+                    $ratings = RatingRepository::getRating($filter)->paginate(6);
+
+                    $moreRating->ratings = $ratings;
+
+                    $cout_details = [];
+                    for ($i = 1; $i <= 5; $i++) {
+                        $filter->number_rating = $i;
+                        $cout_details["{$i}_star"] = RatingRepository::getRating($filter)->count();
+                    }
+                    $moreRating->cout_details = $cout_details;
+
+                    foreach ($cout_details as $key => $count) {
+                        $rating = (int) $key;
+                        $cout_rating += $count;
+                        $sum_rating += $rating * $count;
+                    }
+                    $moreRating->cout_rating = $cout_rating;
+                    $moreRating->number_rating = ($cout_rating != 0) ? round($sum_rating / $cout_rating, 1) : 0;
+                }
+
+                return $this->responseOK(200, $moreRating, 'Xem dịch vụ chi tiết thành công !');
             } else {
                 return $this->responseError(404, 'Không tìm thấy dịch vụ trong bệnh viện !');
             }

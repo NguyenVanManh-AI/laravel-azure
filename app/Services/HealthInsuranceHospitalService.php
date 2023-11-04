@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Http\Requests\RequestCreateHealthInsuranceHospital;
+use App\Models\HealthInsuranceHospital;
 use App\Repositories\HealthInsuranceHospitalInterface;
 use App\Repositories\HealthInsuranceRepository;
 use App\Repositories\InforHospitalRepository;
@@ -71,6 +72,19 @@ class HealthInsuranceHospitalService
             $healInsurHos->delete();
 
             return $this->responseOK(200, null, 'Bệnh viện hủy chấp thuận thành công !');
+        } catch (Throwable $e) {
+            return $this->responseError(400, $e->getMessage());
+        }
+    }
+
+    public function deleteMany(Request $request)
+    {
+        try {
+            $user = auth()->guard('user_api')->user();
+            $list_id = $request->list_id ?? [0];
+            HealthInsuranceHospital::whereIn('id', $list_id)->where('id_hospital', $user->id)->delete();
+
+            return $this->responseOK(200, null, 'Hủy nhiều bảo hiểm thành công !');
         } catch (Throwable $e) {
             return $this->responseError(400, $e->getMessage());
         }

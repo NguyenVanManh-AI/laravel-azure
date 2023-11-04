@@ -385,19 +385,16 @@ sẽ nằm sau
 -------------------------------------------------------
 
 Xóa 
-    + Xóa 
+    + Xóa (xong)
         + hospital_department (check số lượng bác sĩ thuộc khoa đó = 0 thì mới được phép xóa)
         + (cần thiết thì check thêm số lượng lịch tư vấn của chuyên khoa này của bệnh viện)  
 
-    + Có thể xóa nhiều 
+    + Có thể xóa nhiều (xong)
         + Article (all)
         + Work Schedule (hospital, user)
-
-        Chưa có api : 
-            + Category (admin)
-            + Vacation Schedule (doctor, hospital)
-            + health_insurances (admin)
-            + health_insurance_hospital (hospital) 
+        + Category (admin)
+        + health_insurances (admin)
+        + health_insurance_hospital (hospital) 
 
     + Kiểm tra bảng con trước khi xóa 
         + hospital_services (liên quan đến work schedule) (hospital)
@@ -414,6 +411,10 @@ WorkSchedule
         + Liên quan đến hospital_services
         => FIX : Không được làm theo hướng cũ => để null bác sĩ => code thêm 1 API cho hospital phân dịch vụ đó là do doctor nào làm .  
         => Phải bổ sung thêm search dịch vụ chưa có bác sĩ . 
+
+        + Xóa service => không xóa các work schedule của nó => is_delete chỉ để cho người dùng không đặt được thôi 
+        => Service có thể khôi phục lại được
+        (Khi đặt lịch thì kiểm tra is_delete = 0 hay 1 thì mới đặt được) 
     
     + Vấn đề : 
         + Thay đổi time advise department => thay đổi lịch làm việc của bác sĩ => query trong lịch có thể bị trùng 
@@ -453,12 +454,7 @@ Còn lại là tài khoản : user
 Có thể có vài account không nằm trong quy tắt trên , xem cái role của nó là được 
 -------------------------------------------------------
 
-
-    
-    
-    
-        
-
-
-
-
+TH1 : 
+    + id_doctor , id_service = null => chắc chắn là tư vấn 
+    + id_doctor , id_service => chắc chắn là dịch vụ  
+    + id_doctor = null , id_service => chắc chắn là dịch vụ chưa có bác sĩ   

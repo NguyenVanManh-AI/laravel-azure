@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\RequestCreateHospitalService;
+use App\Http\Requests\RequestStatusService;
 use App\Http\Requests\RequestUpdateHospitalService;
 use App\Services\HospitalServiceService;
 use Illuminate\Http\Request;
@@ -26,9 +27,19 @@ class HospitalServiceController extends Controller
         return $this->hospitalServiceService->edit($request, $id);
     }
 
-    public function delete($id)
+    public function changeStatus(RequestStatusService $request)
     {
-        return $this->hospitalServiceService->delete($id);
+        return $this->hospitalServiceService->changeStatus($request);
+    }
+
+    public function hospitalManage(Request $request)
+    {
+        return $this->hospitalServiceService->hospitalManage($request);
+    }
+
+    public function detailManage(Request $request, $id)
+    {
+        return $this->hospitalServiceService->detailManage($request, $id);
     }
 
     public function serviceOfHospital(Request $request, $id)
@@ -36,9 +47,19 @@ class HospitalServiceController extends Controller
         return $this->hospitalServiceService->serviceOfHospital($request, $id);
     }
 
+    public function serviceOfHospitalSelect(Request $request, $id)
+    {
+        return $this->hospitalServiceService->serviceOfHospitalSelect($request, $id);
+    }
+
     public function details(Request $request, $id)
     {
         return $this->hospitalServiceService->details($request, $id);
+    }
+
+    public function moreRating(Request $request, $id_service)
+    {
+        return $this->hospitalServiceService->moreRating($request, $id_service);
     }
 
     public function all(Request $request)

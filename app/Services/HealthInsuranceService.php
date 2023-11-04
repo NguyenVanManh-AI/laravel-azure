@@ -4,6 +4,8 @@ namespace App\Services;
 
 use App\Http\Requests\RequestCreateHealthInsurance;
 use App\Http\Requests\RequestUpdateHealthInsurance;
+use App\Models\HealthInsurance;
+use App\Models\HealthInsuranceHospital;
 use App\Repositories\HealthInsuranceHospitalInterface;
 use App\Repositories\HealthInsuranceInterface;
 use Illuminate\Http\Request;
@@ -79,6 +81,26 @@ class HealthInsuranceService
                 return $this->responseOK(200, null, 'Xóa bảo hiểm thành công !');
             } else {
                 return $this->responseError(404, 'Không tìm thấy bảo hiểm !');
+            }
+        } catch (Throwable $e) {
+            return $this->responseError(400, $e->getMessage());
+        }
+    }
+
+    public function deleteMany(Request $request)
+    {
+        try {
+            $list_id = $request->list_id ?? [0];
+            $healthInsurances = HealthInsurance::whereIn('id', $list_id)->get();
+            if (!$healthInsurances->isEmpty()) {
+                HealthInsuranceHospital::whereIn('id_health_insurance', $list_id)->delete();
+                $healthInsurances->each(function ($healthInsurance) {
+                    $healthInsurance->delete();
+                });
+
+                return $this->responseOK(200, null, 'Xóa nhiều bảo hiểm thành công!');
+            } else {
+                return $this->responseError(404, 'Không tìm thấy bảo hiểm nào để xóa.');
             }
         } catch (Throwable $e) {
             return $this->responseError(400, $e->getMessage());

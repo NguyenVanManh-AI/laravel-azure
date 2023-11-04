@@ -9,6 +9,8 @@ use App\Http\Requests\RequestCreateNewDoctor;
 use App\Http\Requests\RequestUpdateHospital;
 use App\Jobs\SendMailNotify;
 use App\Jobs\SendVerifyEmail;
+use App\Models\Rating;
+use App\Models\WorkSchedule;
 use App\Repositories\DepartmentRepository;
 use App\Repositories\HospitalDepartmentRepository;
 use App\Repositories\InforDoctorRepository;
@@ -465,13 +467,30 @@ class InforHospitalService
 
             if (!(empty($request->paginate))) {
                 $allDoctor = UserRepository::doctorOfHospital($filter)->paginate($request->paginate);
-
-                return $this->responseOK(200, $allDoctor, 'Xem tất cả bác sĩ của bệnh viện thành công !');
             } else {
                 $allDoctor = UserRepository::doctorOfHospital($filter)->get();
-
-                return $this->responseOK(200, $allDoctor, 'Xem tất cả bác sĩ của bệnh viện thành công !');
             }
+
+            foreach ($allDoctor as $index => $doctor) {
+                $workSchedules = WorkSchedule::where('id_doctor', $doctor->id_doctor)->get();
+                $cout_rating = 0;
+                $sum_rating = 0;
+                $doctor->cout_rating = 0;
+                $doctor->number_rating = 0;
+                if (count($workSchedules) > 0) {
+                    foreach ($workSchedules as $index => $workSchedule) {
+                        $rating = Rating::where('id_work_schedule', $workSchedule->id)->first();
+                        if (!empty($rating)) {
+                            $cout_rating += 1;
+                            $sum_rating += $rating->number_rating;
+                        }
+                    }
+                    $doctor->cout_rating = $cout_rating;
+                    $doctor->number_rating = ($cout_rating != 0) ? round($sum_rating / $cout_rating, 1) : 0;
+                }
+            }
+
+            return $this->responseOK(200, $allDoctor, 'Xem tất cả bác sĩ của bệnh viện thành công !');
         } catch (Throwable $e) {
             return $this->responseError(400, $e->getMessage());
         }

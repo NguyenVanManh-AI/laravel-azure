@@ -28,6 +28,8 @@ use App\Repositories\InforUserInterface;
 use App\Repositories\InforUserRepository;
 use App\Repositories\ProvinceInterface;
 use App\Repositories\ProvinceRepository;
+use App\Repositories\RatingInterface;
+use App\Repositories\RatingRepository;
 use App\Repositories\TimeWorkInterface;
 use App\Repositories\TimeWorkRepository;
 use App\Repositories\UserInterface;
@@ -62,6 +64,7 @@ class RepositoryServiceProvider extends ServiceProvider
         $this->app->bind(TimeWorkInterface::class, TimeWorkRepository::class);
         $this->app->bind(ProvinceInterface::class, ProvinceRepository::class);
         $this->app->bind(WorkScheduleInterface::class, WorkScheduleRepository::class);
+        $this->app->bind(RatingInterface::class, RatingRepository::class);
     }
 
     /**

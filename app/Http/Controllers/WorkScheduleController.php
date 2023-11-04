@@ -31,14 +31,24 @@ class WorkScheduleController extends Controller
         return $this->workScheduleService->hospitalWorkSchedule($request);
     }
 
+    public function listSpecifyDoctor(Request $request, $id_work_schedule)
+    {
+        return $this->workScheduleService->listSpecifyDoctor($request, $id_work_schedule);
+    }
+
+    public function specifyDoctor(Request $request)
+    {
+        return $this->workScheduleService->specifyDoctor($request);
+    }
+
     public function doctorWorkSchedule(Request $request)
     {
         return $this->workScheduleService->doctorWorkSchedule($request);
     }
 
-    public function userBook(Request $request)
+    public function userWorkSchedule(Request $request)
     {
-        return $this->workScheduleService->userBook($request);
+        return $this->workScheduleService->userWorkSchedule($request);
     }
 
     public function userCancel(Request $request, $id_work_schedule)

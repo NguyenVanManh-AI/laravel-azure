@@ -31,6 +31,11 @@ class HealthInsuranceController extends Controller
         return $this->healthInsuranceService->delete($id);
     }
 
+    public function deleteMany(Request $request)
+    {
+        return $this->healthInsuranceService->deleteMany($request);
+    }
+
     public function all(Request $request)
     {
         return $this->healthInsuranceService->all($request);

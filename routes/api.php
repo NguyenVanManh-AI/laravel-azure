@@ -13,6 +13,7 @@ use App\Http\Controllers\InforHospitalController;
 use App\Http\Controllers\InforUserController;
 use App\Http\Controllers\ProvinceController;
 use App\Http\Controllers\PublicController;
+use App\Http\Controllers\RatingController;
 use App\Http\Controllers\TimeWorkController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\WorkScheduleController;
@@ -181,11 +182,15 @@ Route::prefix('hospital-service')->controller(HospitalServiceController::class)-
     Route::middleware(['auth:user_api', 'role:hospital'])->group(function () {
         Route::post('/add', 'add');
         Route::post('update/{id}', 'edit');
-        Route::delete('/{id}', 'delete');
+        Route::post('change-status', 'changeStatus');
+        Route::get('/manage', 'hospitalManage');
+        Route::get('/manage/{id}', 'detailManage');
     });
     Route::get('/hospital/{id}', 'serviceOfHospital');
+    Route::get('/hospital-select/{id}', 'serviceOfHospitalSelect');
     Route::get('/all', 'all');
     Route::get('/detail/{id}', 'details');
+    Route::get('/more-rating/{id_service}', 'moreRating');
 });
 
 // HealthInsurance
@@ -193,7 +198,8 @@ Route::prefix('health-insurace')->controller(HealthInsuranceController::class)->
     Route::middleware('auth:admin_api')->group(function () {
         Route::post('/add', 'add');
         Route::post('update/{id}', 'edit');
-        Route::delete('/{id}', 'delete');
+        Route::delete('delete/{id}', 'delete');
+        Route::delete('deletes', 'deleteMany');
     });
     Route::get('/', 'all');
     Route::get('/detail/{id}', 'details');
@@ -204,7 +210,8 @@ Route::prefix('health-insurace-hospital')->controller(HealthInsuranceHospitalCon
     Route::middleware(['auth:user_api', 'role:hospital'])->group(function () {
         Route::post('/add', 'add');
         Route::post('update/{id}', 'edit');
-        Route::delete('/{id}', 'delete');
+        Route::delete('delete/{id}', 'delete');
+        Route::delete('deletes', 'deleteMany');
     });
     Route::get('/hospital/{id}', 'ofHospital');
     Route::get('/detail/{id}', 'details');
@@ -226,13 +233,15 @@ Route::prefix('work-schedule')->controller(WorkScheduleController::class)->group
         Route::post('add-advise', 'addAdvise');
         Route::post('add-service', 'addService');
 
-        Route::get('/user', 'userBook');
+        Route::get('/user', 'userWorkSchedule');
         Route::delete('/user-cancel/{id}', 'userCancel');
         Route::delete('/user-cancel-many', 'userCancelMany');
     });
 
     Route::middleware(['auth:user_api', 'role:hospital'])->group(function () {
         Route::get('/hospital', 'hospitalWorkSchedule');
+        Route::get('/list-specify/{id_work_schedule}', 'listSpecifyDoctor');
+        Route::post('/specify-doctor', 'specifyDoctor');
         Route::delete('/hospital-cancel/{id}', 'hospitalCancel');
         Route::delete('/hospital-cancel-many', 'hospitalCancelMany');
     });
@@ -250,3 +259,15 @@ Route::prefix('public')->controller(PublicController::class)->group(function () 
 
 // Seeder Value
 Route::get('province', [ProvinceController::class, 'all']);
+
+// Rating
+Route::prefix('rating')->controller(RatingController::class)->group(function () {
+    Route::middleware(['auth:user_api', 'role:user'])->group(function () {
+        Route::post('/add', 'add');
+        Route::post('update/{id}', 'edit');
+    });
+
+    Route::middleware(['auth:user_api', 'role:hospital'])->group(function () {
+        Route::get('/hospital', 'hospitalManage');
+    });
+});

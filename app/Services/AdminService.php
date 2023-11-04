@@ -68,6 +68,11 @@ class AdminService
     public function login(Request $request)
     {
         try {
+            $findEmail = Admin::where('email', $request->email)->first();
+            if (empty($findEmail)) {
+                return $this->responseError(400, 'Email không tồn tại !');
+            }
+
             $credentials = request(['email', 'password']);
             $user = $this->adminRepository->findAdminByEmail($request->email);
             if ($user->email_verified_at == null) {

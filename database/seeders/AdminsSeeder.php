@@ -106,7 +106,7 @@ class AdminsSeeder extends Seeder
                         $data = array_merge(
                             $admin,
                             [
-                                'password' => Hash::make('admin999'),
+                                'password' => Hash::make('123456'),
                                 'avatar' => 'storage/image/avatars/admins/' . $nameImage,
                                 'token_verify_email' => null,
                                 'created_at' => now(),

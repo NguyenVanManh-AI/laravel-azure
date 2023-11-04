@@ -12,6 +12,7 @@ class Rating extends Model
     protected $fillable = [
         'id',
         'id_work_schedule',
+        'id_user',
         'number_rating',
         'detail_rating',
     ];

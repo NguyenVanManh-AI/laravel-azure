@@ -1727,3 +1727,96 @@ Bởi vì khi mà người dùng họ truyền vào
 }
 
 => "province_code" được tính là rỗng => nó có thể vẫn được tìm = ""
+
+-----------------------------------------------------------------------
+php artisan optimize:clear
+php artisan optimize
+
+=> sẽ thay thể cho toàn bộ các câu lệnh xóa và tạo lại cache 
+    + route 
+    + config 
+    + cache 
+    + view 
+    + ... 
+-----------------------------------------------------------------------
+[QUAN TRỌNG]
+
+một vấn đề khác nữa là vì tôi không biết trường hợp nào cái nào null nên tôi lấy ra cả hai :             users_hospital.name AS hospital_name,
+            uh_service.name AS hospital_name, nhưng có cái thì nó null có cái thì không null , vì giá trị này luôn có nhưng tôi nghĩ do cách lấy ra của tôi sai 
+ChatGPT
+Nếu bạn không biết giá trị nào có thể là null, và bạn muốn lấy cả hai trường users_hospital.name và uh_service.name dựa trên cả id_doctor và id_service, bạn có thể thực hiện điều này bằng cách sử dụng hàm COALESCE trong SQL. Hàm COALESCE cho phép bạn lấy giá trị không null đầu tiên trong danh sách các giá trị.
+
+Dưới đây là cách bạn có thể sử dụng COALESCE để lấy cả hai trường và bỏ qua giá trị null:
+
+php
+Copy code
+$query->selectRaw('
+    work_schedules.*,
+    hospital_services.*,
+    infor_doctors.*,
+    infor_hospitals.*,
+    users_hospital.*,
+    departments.*,
+    users_doctor.*,
+    infor_users.*,
+    users_user.*,
+    hd_service.*,
+    ih_service.*,
+    uh_service.*,
+    hd_department.*,
+    users_doctor.name AS doctor_name,
+    users_user.name AS user_name,
+    COALESCE(users_hospital.name, uh_service.name) AS hospital_name,
+    hospital_services.name AS name_service'
+);
+Ở đây, COALESCE(users_hospital.name, uh_service.name) sẽ lấy giá trị users_hospital.name nếu nó không null, 
+nếu không nó sẽ lấy giá trị từ uh_service.name. 
+Điều này sẽ đảm bảo bạn luôn lấy được giá trị từ trường nào có dữ liệu và bỏ qua trường có giá trị null.
+
+-----------------------------------------------------------------------
+if ($filter->role == 'user') {
+    $query->where(function ($query) use ($filter) { 
+        $query->where('users_doctor.name', 'LIKE', '%' . $filter->search . '%')
+        ->orWhere('users_hospital.name', 'LIKE', '%' . $filter->search . '%')
+        ->orWhere('users_doctor.phone', 'LIKE', '%' . $filter->search . '%')
+        ->orWhere('users_hospital.phone', 'LIKE', '%' . $filter->search . '%')
+        ->orWhere('users_doctor.address', 'LIKE', '%' . $filter->search . '%')
+        ->orWhere('users_hospital.address', 'LIKE', '%' . $filter->search . '%')
+        ->orWhere('departments.name', 'LIKE', '%' . $filter->search . '%')
+        ->orWhere('departments.description', 'LIKE', '%' . $filter->search . '%')
+        ->orWhere('hospital_services.name', 'LIKE', '%' . $filter->search . '%')
+        ->orWhere('work_schedules.content', 'LIKE', '%' . $filter->search . '%');
+    });
+} 
+
+và 
+
+if ($filter->role == 'user') {
+    $query->where('users_doctor.name', 'LIKE', '%' . $filter->search . '%')
+    ->orWhere('users_hospital.name', 'LIKE', '%' . $filter->search . '%')
+    ->orWhere('users_doctor.phone', 'LIKE', '%' . $filter->search . '%')
+    ->orWhere('users_hospital.phone', 'LIKE', '%' . $filter->search . '%')
+    ->orWhere('users_doctor.address', 'LIKE', '%' . $filter->search . '%')
+    ->orWhere('users_hospital.address', 'LIKE', '%' . $filter->search . '%')
+    ->orWhere('departments.name', 'LIKE', '%' . $filter->search . '%')
+    ->orWhere('departments.description', 'LIKE', '%' . $filter->search . '%')
+    ->orWhere('hospital_services.name', 'LIKE', '%' . $filter->search . '%')
+    ->orWhere('work_schedules.content', 'LIKE', '%' . $filter->search . '%');
+}  . khác nhau cái gì , 
+ChatGPT
+Hai đoạn mã bạn đã đưa ra khác nhau về cách áp dụng điều kiện trong trường hợp vai trò (role) của $filter. Hãy xem xét sự khác biệt giữa chúng:
+
+Đoạn mã 1 (Vai trò là 'user'):
+
+Sử dụng một khối where ngoại cùng bao gồm một hàm con where.
+Trong hàm con where, có nhiều câu lệnh orWhere được sử dụng để tạo nhiều điều kiện OR.
+Điều kiện OR có thể làm cho dòng dữ liệu thỏa mãn bất kỳ điều kiện nào trong danh sách OR.
+Đoạn mã 2 (Vai trò không phụ thuộc vào 'user' hoặc 'không phải user'):
+
+Sử dụng một loạt các câu lệnh orWhere mà không nằm trong một khối where con.
+Tất cả các câu lệnh orWhere ở đây cũng tạo ra nhiều điều kiện OR.
+Sự khác biệt quan trọng giữa hai đoạn mã này là cách bạn bao gói điều kiện. Trong đoạn mã 1, nếu bất kỳ điều kiện OR nào trong khối where con là đúng, thì toàn bộ điều kiện trong khối where con cũng được coi là đúng. Trong đoạn mã 2, tất cả các điều kiện OR đều đứng riêng lẻ và bất kỳ điều kiện OR nào đúng cũng có thể làm cho toàn bộ điều kiện trở thành đúng.
+
+Nói cách khác, đoạn mã 1 yêu cầu một sự kết hợp AND giữa các điều kiện nằm trong khối where con và yêu cầu ít nhất một điều kiện trong khối con phải đúng để toàn bộ điều kiện đúng. Trong khi đoạn mã 2 yêu cầu ít nhất một trong các điều kiện OR phải đúng để toàn bộ điều kiện đúng.
+
+Lựa chọn giữa hai cách xử lý điều kiện phụ thuộc vào yêu cầu cụ thể của bạn về cách bạn muốn lọc dữ liệu trong trường hợp role là 'user'.
