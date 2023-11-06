@@ -20,7 +20,7 @@ class HospitalDepartmentsSeeder extends Seeder
                 HospitalDepartment::create([
                     'id_department' => $idDepartments[$i],
                     'id_hospital' => $hospital->id,
-                    'time_advise' => rand(0, 4) * 30,
+                    'time_advise' => rand(1, 4) * 30,
                     'price' => rand(1, 60) * 50000,
                     'created_at' => now(),
                     'updated_at' => now(),

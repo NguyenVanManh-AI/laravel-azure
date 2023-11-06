@@ -458,6 +458,8 @@ class WorkScheduleService
                 $workSchedule->work_schedule_time = json_decode($workSchedule->work_schedule_time);
                 $workSchedule->hospital_infrastructure = json_decode($workSchedule->hospital_infrastructure);
                 $workSchedule->service_infor = json_decode($workSchedule->service_infor);
+                $rating = Rating::where('id_work_schedule', $workSchedule->id)->first();
+                $workSchedule->rating = $rating;
             }
 
             return $this->responseOK(200, $workSchedules, 'Xem tất cả lịch tư vấn và dịch vụ thành công !');

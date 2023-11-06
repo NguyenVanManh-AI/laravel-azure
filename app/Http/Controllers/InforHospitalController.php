@@ -43,6 +43,11 @@ class InforHospitalController extends Controller
         return $this->inforHospitalService->addDoctor($request);
     }
 
+    public function updateInforExtend(Request $request, $id_doctor)
+    {
+        return $this->inforHospitalService->updateInforExtend($request, $id_doctor);
+    }
+
     public function allDoctor(Request $request)
     {
         return $this->inforHospitalService->allDoctor($request);

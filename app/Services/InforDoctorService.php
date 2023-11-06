@@ -6,11 +6,16 @@ use App\Enums\UserEnum;
 use App\Http\Requests\RequestUpdateDoctor;
 use App\Jobs\SendMailNotify;
 use App\Jobs\SendVerifyEmail;
+use App\Models\Department;
+use App\Models\InforDoctor;
+use App\Models\InforExtendDoctor;
 use App\Models\InforHospital;
 use App\Models\User;
+use App\Models\WorkSchedule;
 use App\Repositories\HospitalDepartmentRepository;
 use App\Repositories\InforDoctorInterface;
 use App\Repositories\InforDoctorRepository;
+use App\Repositories\RatingRepository;
 use App\Repositories\UserRepository;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
@@ -82,15 +87,122 @@ class InforDoctorService
                     $inforUser = InforDoctorRepository::updateResult($inforUser, ['search_number' => $search_number]);
                     // search number
 
-                    $hospital = array_merge($user->toArray(), $inforUser->toArray());
+                    // infor extend doctor
+                    $inforExtendDoctor = InforExtendDoctor::where('id_doctor', $inforUser->id_doctor)->first();
 
-                    return $this->responseOK(200, $hospital, 'Xem thông tin tài khoản thành công !');
+                    $inforExtendDoctor->prominent = json_decode($inforExtendDoctor->prominent);
+                    $inforExtendDoctor->strengths = json_decode($inforExtendDoctor->strengths);
+                    $inforExtendDoctor->work_experience = json_decode($inforExtendDoctor->work_experience);
+                    $inforExtendDoctor->training_process = json_decode($inforExtendDoctor->training_process);
+                    $inforExtendDoctor->language = json_decode($inforExtendDoctor->language);
+                    $inforExtendDoctor->awards_recognition = json_decode($inforExtendDoctor->awards_recognition);
+                    $inforExtendDoctor->research_work = json_decode($inforExtendDoctor->research_work);
+
+                    $inforUser->infor_extend = $inforExtendDoctor;
+                    // infor extend doctor
+
+                    // rating
+                    $bigRating = (object) [];
+                    $workSchedules = WorkSchedule::where('id_doctor', $inforUser->id_doctor)->get();
+                    $idWorkSchedules = $workSchedules->pluck('id')->toArray();
+
+                    $cout_rating = 0;
+                    $sum_rating = 0;
+                    $bigRating->cout_rating = 0;
+                    $bigRating->number_rating = 0;
+                    $bigRating->cout_details = null;
+                    $bigRating->ratings = null;
+                    if (count($workSchedules) > 0) {
+                        $filter = (object) [
+                            'list_id_work_schedule' => $idWorkSchedules,
+                        ];
+                        $ratings = RatingRepository::getRating($filter)->paginate(6);
+                        $bigRating->ratings = $ratings;
+
+                        $cout_details = [];
+                        for ($i = 1; $i <= 5; $i++) {
+                            $filter->number_rating = $i;
+                            $cout_details["{$i}_star"] = RatingRepository::getRating($filter)->count();
+                        }
+                        $bigRating->cout_details = $cout_details;
+
+                        foreach ($cout_details as $key => $count) {
+                            $rating = (int) $key;
+                            $cout_rating += $count;
+                            $sum_rating += $rating * $count;
+                        }
+                        $bigRating->cout_rating = $cout_rating;
+                        $bigRating->number_rating = ($cout_rating != 0) ? round($sum_rating / $cout_rating, 1) : 0;
+                    }
+                    $inforUser->rating = $bigRating;
+                    // rating
+
+                    // department
+                    $department = Department::find($inforUser->id_department);
+                    $inforUser->department = $department;
+                    // department
+
+                    $doctor = array_merge($user->toArray(), $inforUser->toArray());
+
+                    return $this->responseOK(200, $doctor, 'Xem thông tin tài khoản thành công !');
                 }
             }
 
             return $this->responseError(400, 'Không tìm thấy tài khoản !');
         } catch (Throwable $e) {
             return $this->responseError(400, $e->getMessage());
+        }
+    }
+
+    public function moreRating(Request $request, $id_doctor)
+    {
+        try {
+            $doctor = InforDoctor::where('id_doctor', $id_doctor)->first();
+            if ($doctor) {
+                $moreRating = (object) [];
+
+                // ratings
+                $workSchedules = WorkSchedule::where('id_doctor', $doctor->id_doctor)->get();
+                $idWorkSchedules = $workSchedules->pluck('id')->toArray();
+
+                $cout_rating = 0;
+                $sum_rating = 0;
+                $moreRating->cout_rating = 0;
+                $moreRating->number_rating = 0;
+                $moreRating->cout_details = null;
+                $moreRating->ratings = null;
+                if (count($workSchedules) > 0) {
+                    $filter = (object) [
+                        'list_id_work_schedule' => $idWorkSchedules,
+                    ];
+
+                    $page = $request->page;
+                    $ratings = RatingRepository::getRating($filter)->paginate(6);
+
+                    $moreRating->ratings = $ratings;
+
+                    $cout_details = [];
+                    for ($i = 1; $i <= 5; $i++) {
+                        $filter->number_rating = $i;
+                        $cout_details["{$i}_star"] = RatingRepository::getRating($filter)->count();
+                    }
+                    $moreRating->cout_details = $cout_details;
+
+                    foreach ($cout_details as $key => $count) {
+                        $rating = (int) $key;
+                        $cout_rating += $count;
+                        $sum_rating += $rating * $count;
+                    }
+                    $moreRating->cout_rating = $cout_rating;
+                    $moreRating->number_rating = ($cout_rating != 0) ? round($sum_rating / $cout_rating, 1) : 0;
+                }
+
+                return $this->responseOK(200, $moreRating, 'Xem đánh giá chi tiết thành công !');
+            } else {
+                return $this->responseError(400, 'Không tìm thấy bác sĩ trong bệnh viện !');
+            }
+        } catch (Throwable $e) {
+            return response()->json(['message' => $e->getMessage()], 400);
         }
     }
 

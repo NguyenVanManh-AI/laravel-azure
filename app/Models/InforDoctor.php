@@ -57,4 +57,9 @@ class InforDoctor extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    public function inforExtendDoctor()
+    {
+        return $this->hasOne(InforExtendDoctor::class);
+    }
 }

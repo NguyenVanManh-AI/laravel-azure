@@ -24,6 +24,7 @@ class DatabaseSeeder extends Seeder
             HealthInsurancesSeeder::class,
             HealthInsuranceHospitalsSeeder::class,
             DoctorsSeeder::class,
+            InforExtendDoctorsSeeder::class,
             ArticlesSeeder::class,
         ]);
     }

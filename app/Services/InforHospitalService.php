@@ -9,7 +9,9 @@ use App\Http\Requests\RequestCreateNewDoctor;
 use App\Http\Requests\RequestUpdateHospital;
 use App\Jobs\SendMailNotify;
 use App\Jobs\SendVerifyEmail;
+use App\Models\InforExtendDoctor;
 use App\Models\Rating;
+use App\Models\User;
 use App\Models\WorkSchedule;
 use App\Repositories\DepartmentRepository;
 use App\Repositories\HospitalDepartmentRepository;
@@ -334,17 +336,104 @@ class InforHospitalService
             ];
             $inforDoctor = InforDoctorRepository::createDoctor($data);
 
+            // create Infor Extend Doctor
+            $request->merge([
+                'id_doctor' => $doctor->id,
+                'prominent' => json_encode($request->prominent),
+                'information' => $request->information,
+                'strengths' => json_encode($request->strengths),
+                'work_experience' => json_encode($request->work_experience),
+                'training_process' => json_encode($request->training_process),
+                'language' => json_encode($request->language),
+                'awards_recognition' => json_encode($request->awards_recognition),
+                'research_work' => json_encode($request->research_work),
+            ]);
+            $inforExtendDoctor = InforExtendDoctor::create($request->all());
+            $inforExtendDoctor->prominent = json_decode($inforExtendDoctor->prominent);
+            $inforExtendDoctor->strengths = json_decode($inforExtendDoctor->strengths);
+            $inforExtendDoctor->work_experience = json_decode($inforExtendDoctor->work_experience);
+            $inforExtendDoctor->training_process = json_decode($inforExtendDoctor->training_process);
+            $inforExtendDoctor->language = json_decode($inforExtendDoctor->language);
+            $inforExtendDoctor->awards_recognition = json_decode($inforExtendDoctor->awards_recognition);
+            $inforExtendDoctor->research_work = json_decode($inforExtendDoctor->research_work);
+
+            $inforDoctor->infor_extend = $inforExtendDoctor;
+
             $content = 'Dưới đây là thông tin tài khoản của bạn , hãy sử dụng nó để đăng nhập vào hệ thống , sau đó hãy tiến hành đổi mật khẩu để đảm bảo tính bảo mật cho tài khoản . <br> email: ' . $doctor->email . ' <br> password: ' . $new_password;
             Queue::push(new SendMailNotify($doctor->email, $content));
 
             DB::commit();
 
-            $hospital = array_merge($doctor->toArray(), $inforDoctor->toArray());
+            $fullDoctor = array_merge($doctor->toArray(), $inforDoctor->toArray());
 
-            return $this->responseOK(201, $hospital, 'Thêm tài khoản bác sĩ thành công !');
+            return $this->responseOK(201, $fullDoctor, 'Thêm tài khoản bác sĩ thành công !');
         } catch (Throwable $e) {
             DB::rollback();
 
+            return $this->responseError(400, $e->getMessage());
+        }
+    }
+
+    public function updateInforExtend(Request $request, $id_doctor)
+    {
+        try {
+            $hospital = Auth::user();
+
+            $filter = (object) [
+                'id_hospital' => $hospital->id,
+                'id_doctor' => $id_doctor,
+            ];
+
+            $inforDoctor = InforDoctorRepository::getInforDoctor($filter)->first();
+            if (empty($inforDoctor)) {
+                return $this->responseError(400, 'Không tìm thấy bác sĩ !');
+            } else {
+                $inforExtendDoctor = InforExtendDoctor::where('id_doctor', $id_doctor)->first();
+
+                $dataToUpdate = [];
+
+                if ($request->has('prominent')) {
+                    $dataToUpdate['prominent'] = json_encode($request->prominent);
+                }
+                if ($request->has('information')) {
+                    $dataToUpdate['information'] = $request->information;
+                }
+                if ($request->has('strengths')) {
+                    $dataToUpdate['strengths'] = json_encode($request->strengths);
+                }
+                if ($request->has('work_experience')) {
+                    $dataToUpdate['work_experience'] = json_encode($request->work_experience);
+                }
+                if ($request->has('training_process')) {
+                    $dataToUpdate['training_process'] = json_encode($request->training_process);
+                }
+                if ($request->has('language')) {
+                    $dataToUpdate['language'] = json_encode($request->language);
+                }
+                if ($request->has('awards_recognition')) {
+                    $dataToUpdate['awards_recognition'] = json_encode($request->awards_recognition);
+                }
+                if ($request->has('research_work')) {
+                    $dataToUpdate['research_work'] = json_encode($request->research_work);
+                }
+
+                $inforExtendDoctor->update($dataToUpdate);
+
+                $inforExtendDoctor->prominent = json_decode($inforExtendDoctor->prominent);
+                $inforExtendDoctor->strengths = json_decode($inforExtendDoctor->strengths);
+                $inforExtendDoctor->work_experience = json_decode($inforExtendDoctor->work_experience);
+                $inforExtendDoctor->training_process = json_decode($inforExtendDoctor->training_process);
+                $inforExtendDoctor->language = json_decode($inforExtendDoctor->language);
+                $inforExtendDoctor->awards_recognition = json_decode($inforExtendDoctor->awards_recognition);
+                $inforExtendDoctor->research_work = json_decode($inforExtendDoctor->research_work);
+
+                $inforDoctor->infor_extend = $inforExtendDoctor;
+                $doctor = User::find($id_doctor);
+                $fullDoctor = array_merge($doctor->toArray(), $inforDoctor->toArray());
+            }
+
+            return $this->responseOK(200, $fullDoctor, 'Cập nhật thông tin mở rộng của bác sĩ thành công !');
+        } catch (Throwable $e) {
             return $this->responseError(400, $e->getMessage());
         }
     }

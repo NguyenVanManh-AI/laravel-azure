@@ -94,6 +94,7 @@ Route::prefix('infor-hospital')->controller(InforHospitalController::class)->gro
         Route::post('update', 'updateProfile');
         Route::get('profile', 'profile');
         Route::post('add-doctor', 'addDoctor');
+        Route::post('update-infor-extend/{id_doctor}', 'updateInforExtend');
         Route::get('all-doctor', 'allDoctor');
         Route::post('change-confirm/{id}', 'changeConfirm');
     });
@@ -109,9 +110,10 @@ Route::prefix('infor-doctor')->controller(InforDoctorController::class)->group(f
     Route::middleware(['auth:user_api', 'role:doctor'])->group(function () {
         Route::post('update', 'updateProfile');
         Route::get('profile', 'profile');
-        Route::post('add-doctor', 'addDoctor');
+        // Route::post('add-doctor', 'addDoctor');
     });
     Route::get('view-profile/{id}', 'viewProfile');
+    Route::get('/more-rating/{id_doctor}', 'moreRating');
     Route::get('book-doctor/{id_hospital}/{id_department}', 'bookDoctor');
 });
 

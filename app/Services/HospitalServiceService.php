@@ -469,7 +469,7 @@ class HospitalServiceService
                     $moreRating->number_rating = ($cout_rating != 0) ? round($sum_rating / $cout_rating, 1) : 0;
                 }
 
-                return $this->responseOK(200, $moreRating, 'Xem dịch vụ chi tiết thành công !');
+                return $this->responseOK(200, $moreRating, 'Xem đánh giá chi tiết thành công !');
             } else {
                 return $this->responseError(400, 'Không tìm thấy dịch vụ trong bệnh viện !');
             }

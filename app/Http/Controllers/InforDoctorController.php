@@ -25,6 +25,11 @@ class InforDoctorController extends Controller
         return $this->inforDoctorService->viewProfile($request, $id);
     }
 
+    public function moreRating(Request $request, $id_doctor)
+    {
+        return $this->inforDoctorService->moreRating($request, $id_doctor);
+    }
+
     public function updateProfile(RequestUpdateDoctor $request)
     {
         return $this->inforDoctorService->updateProfile($request);

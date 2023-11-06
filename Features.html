@@ -458,3 +458,108 @@ TH1 :
     + id_doctor , id_service = null => chắc chắn là tư vấn 
     + id_doctor , id_service => chắc chắn là dịch vụ  
     + id_doctor = null , id_service => chắc chắn là dịch vụ chưa có bác sĩ   
+
+-------------------------------------------------------
+
++ URL UserEnum 
++ Deploy 
+
+
++ Cân nhắc bổ sung thêm : Hospital xóa rating (xóa những rating không tốt hoặc ẩn rating đó)
+    + bổ sung thêm cột is_hide ?
+    => validate từ cấm ngay từ đầu (khi create hoặc update) thôi chứ không được ẩn . 
+    vì đôi lúc người dùng đánh giá đúng sự thật nhưng mà không có lợi cho bệnh viện thì họ ẩn đi => không được . 
+
++ User book service ok => gửi thông báo luôn => không cần đợi đến lúc chỉ định doctor . 
+
++ Bổ sung thêm một số thông tin cho infor_doctor 
++ https://hellobacsi.com/care/bac-si/bscki-vu-thi-hanh-nhan-2316/?fbclid=IwAR0hP-NGFX3aUxEa59FdN2ObOy4rwYvJ-bQUeanGlb_GJrLYBqqa_Alkz5M
+    + Hospital update những thông tin này của bác sĩ 
+    + Lúc hospital add doctor thì cũng bổ sung thêm những thông tin này nữa 
++ mấy field này để nullable hết 
+
+-------------------------------------------------------
+https://hellobacsi.com/care/bac-si/bscki-le-ngoc-hong-hanh-537/
+
+> php artisan make:migration create_infor_extend_doctors_table
+ngoại trừ id , id_doctor còn lại nullable hết 
+
+=> tạo liên kết với bản infor_doctor 
+
+
+id 
+id_doctor 
+information : long text (thông tin cơ bản)
+strengths : json (array) : (Điểm mạnh)  
+        ["Khám Tai - Mũi - Họng",
+        "Khám và tư vấn Hen",
+        "Khám và tư vấn béo phì cho trẻ",
+        "Khám và tư vấn suy dinh dưỡng ở trẻ",
+        "Khám Nhi thần kinh"]
+
+work_experience : json (kinh nghiệm làm việc)
+    [
+        {
+            workplace : "Bệnh viện Nhi Đồng 2", (nơi làm việc)
+            position : "Bác sĩ chuyên khoa Nhi", (chức vụ)
+            year : "2019 - 2020",
+        },
+        {
+            workplace : "Bệnh viện Nhi Đồng 3",
+            position : "Bác sĩ đa khoa",
+            year : "2019 - 2020",
+        }
+    ]
+
+
+training_process : json (quá trình đào tạo)
+    [
+        {
+            location : "Đại học Y Dược TP.HCM",  (nơi đào tạo )
+            title : "Bác sĩ Đa khoa",      (chức danh)
+            year : "2019 - 2020",
+        },
+        {
+            location : "Đại học Y Huế",
+            title : "Bác sĩ Răng Hàm Mặt",
+            year : "2019 - 2020",
+        }
+    ]
+
+language : (ngôn ngữ)
+    [
+        "Tiếng Việt",
+        "Tiếng Anh",
+    ]
+
+awards_recognition : 
+    [
+        {
+            name : "Tập huấn điều trị bệnh Covid 19 ở trẻ em",
+            year : "2023"
+        },
+        {
+            name : "Hướng dẫn nuôi con bằng sữa mẹ",
+            year : "2021"
+        },
+        {
+            name : "Chứng chỉ Nhi khoa DCH/IPPC (Sydney Child Health Program)",
+            year : "2016"
+        },
+        {
+            name : "Hướng dẫn nuôi con bằng sữa mẹ",
+            year : "2016"
+        },
+    ]
+    => khi lấy cột này ra thì nhớ sắp xếp lại giảm dần theo năm 
+
+research_work : (Sách, báo, công trình nghiên cứu)
+    [
+        "Nghiên cứu vi khuẩn ái khí trong các thể viêm amidan tại Huế."",
+        "Nghiên cứu phẫu thuật vách ngăn nội soi bằng đường rạch chữ T tại Lâm Đồng.",
+        "Thay thế xương bàn đạp trong điều trị xốp xơ tai tại Bệnh viện Tai Mũi Họng Sài Gòn.",
+        "Nghiên cứu cấy điện cực ốc tai tại Bệnh viện Tai Mũi Họng Sài Gòn.",
+        "Nghiên cứu khâu xuyên sau phẫu thuật vách ngăn nội soi không cần nhét bấc.",
+        "Chỉnh hình xương con tự thân 1 thì/bệnh cholesteatome bẩm sinh người lớn.",
+    ]
+
