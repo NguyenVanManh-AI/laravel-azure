@@ -470,13 +470,27 @@ class InforHospitalService
 
             if (!(empty($request->paginate))) {
                 $allDoctor = UserRepository::doctorOfHospital($filter)->paginate($request->paginate);
-
-                return $this->responseOK(200, $allDoctor, 'Xem tất cả bác sĩ thành công !');
             } else {
                 $allDoctor = UserRepository::doctorOfHospital($filter)->get();
-
-                return $this->responseOK(200, $allDoctor, 'Xem tất cả bác sĩ thành công !');
             }
+
+            if (count($allDoctor) > 0) {
+                foreach ($allDoctor as $doctor) {
+                    $inforExtendDoctor = InforExtendDoctor::where('id_doctor', $doctor->id_doctor)->first();
+
+                    $inforExtendDoctor->prominent = json_decode($inforExtendDoctor->prominent);
+                    $inforExtendDoctor->strengths = json_decode($inforExtendDoctor->strengths);
+                    $inforExtendDoctor->work_experience = json_decode($inforExtendDoctor->work_experience);
+                    $inforExtendDoctor->training_process = json_decode($inforExtendDoctor->training_process);
+                    $inforExtendDoctor->language = json_decode($inforExtendDoctor->language);
+                    $inforExtendDoctor->awards_recognition = json_decode($inforExtendDoctor->awards_recognition);
+                    $inforExtendDoctor->research_work = json_decode($inforExtendDoctor->research_work);
+
+                    $doctor->infor_extend = $inforExtendDoctor;
+                }
+            }
+
+            return $this->responseOK(200, $allDoctor, 'Xem tất cả bác sĩ thành công !');
         } catch (Throwable $e) {
             return $this->responseError(400, $e->getMessage());
         }
