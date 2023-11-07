@@ -1820,3 +1820,114 @@ Sự khác biệt quan trọng giữa hai đoạn mã này là cách bạn bao g
 Nói cách khác, đoạn mã 1 yêu cầu một sự kết hợp AND giữa các điều kiện nằm trong khối where con và yêu cầu ít nhất một điều kiện trong khối con phải đúng để toàn bộ điều kiện đúng. Trong khi đoạn mã 2 yêu cầu ít nhất một trong các điều kiện OR phải đúng để toàn bộ điều kiện đúng.
 
 Lựa chọn giữa hai cách xử lý điều kiện phụ thuộc vào yêu cầu cụ thể của bạn về cách bạn muốn lọc dữ liệu trong trường hợp role là 'user'.
+
+
+
+-----------------------------------------------------------------------
+<script>
+
+    import BaseRequest from '../restful/admin/core/BaseRequest';
+    import useEventBus from '../composables/useEventBus';
+    import VueDatePicker from '@vuepic/vue-datepicker';
+    import '@vuepic/vue-datepicker/dist/main.css'
+    
+    export default {
+        name: "EditBook",
+        props: {
+            config: String,
+            categories: Object,
+            bookSelected: Object,
+        },
+        data() {
+            return {
+                book: {
+                    book_id: '',
+                    title: '',
+                    author: '',
+                    id_category: 1,
+                    publication_year: 2023,
+                    publisher: null,
+                    price: 0,
+                    thumbnail: null,
+                },
+                previewImageSrc: null,
+                updateImage:false,
+            }
+        },
+        mounted() {
+        },
+        components: {
+            VueDatePicker,
+        },
+        computed: {
+    
+        },
+        methods: {
+            previewImage(event) {
+                const file = event.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        this.previewImageSrc = e.target.result;
+                        this.book.thumbnail = file;
+                        this.updateImage = true;
+                    };
+                    reader.readAsDataURL(file);
+                } else this.removeFile();
+            },
+            removeFile: function () {
+                this.previewImageSrc = null;
+                this.book.thumbnail = null;
+                this.updateImage = false;
+            },
+            updateBook: function () {
+                const formData = new FormData();
+                formData.append('title', this.book.title);
+                formData.append('author', this.book.author);
+                formData.append('id_category', this.book.id_category);
+                formData.append('publication_year', this.book.publication_year);
+                formData.append('publisher', this.book.publisher);
+                formData.append('price', this.book.price);
+    
+                if(this.updateImage) {
+                    formData.append('thumbnail', this.book.thumbnail);
+                }
+    
+                BaseRequest.post('book/update/'+this.book.book_id, formData)
+                    .then((data) => {
+                        const { emitEvent } = useEventBus();
+                        emitEvent('eventSuccess', data.message);
+                        const closeAdd = this.$refs.editBook;
+                        closeAdd.click();
+                        window.location.reload();
+                    })
+                    .catch((error) => {
+                        const { emitEvent } = useEventBus();
+                        console.error(error);
+                        if (error.response.data.data) emitEvent('eventError', error.response.data.data[0]);
+                        else emitEvent('eventError', 'Cập nhật sách thất bại !');
+                    })
+            }
+        },
+        watch: {
+            bookSelected: {
+                immediate: true,
+                handler(newVal) {
+                    if (newVal) {
+                        // this.book = newVal; // GÁN CÓ THAM CHIẾU 
+                        this.book = Object.assign({}, newVal);  // GÁN KHÔNG THAM CHIẾU 
+                        this.previewImageSrc = this.config.URL + newVal.book_thumbnail;
+                    }
+                },
+            },
+        },
+    }
+    </script>
+ 
++ Gán có tham chiếu thì khi truyền biến object từ component cha sang component con (biến bookSelected) , 
+sau đó ta lại gán cho biến khác this.book = newVal (trong watch) thì ở component con 
+this.book thay đổi => bookSelected cũng thay đổi theo vì nó tham chiếu => tiếp tục nó lại làm cho biến ở component
+cha cũng thay đổi 
+
+=> để tránh tình trạng này thfi ta gán không có tham chiếu cho nó bằng cách tạo một bảng sao rồi gán cho nó . 
+this.book = Object.assign({}, newVal);

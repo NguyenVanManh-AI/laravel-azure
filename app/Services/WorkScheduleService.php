@@ -307,6 +307,7 @@ class WorkScheduleService
                 'end_date' => $request->end_date ?? '',
                 'orderBy' => $orderBy,
                 'orderDirection' => $orderDirection,
+                'status' => $request->status ?? '',
                 'role' => 'hospital',
             ];
 
@@ -377,6 +378,7 @@ class WorkScheduleService
                 'end_date' => $request->end_date ?? '',
                 'orderBy' => $orderBy,
                 'orderDirection' => $orderDirection,
+                'status' => $request->status ?? '',
                 'role' => 'doctor',
             ];
 
@@ -445,6 +447,7 @@ class WorkScheduleService
                 'end_date' => $request->end_date ?? '',
                 'orderBy' => $orderBy,
                 'orderDirection' => $orderDirection,
+                'status' => $request->status ?? '',
                 'role' => 'user',
             ];
 
