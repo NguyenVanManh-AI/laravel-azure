@@ -233,24 +233,25 @@ class WorkScheduleRepository extends BaseRepository implements WorkScheduleInter
             $query->where('work_schedules.id', $filter->work_schedule_id);
         });
 
-        // work schedule complete , upcoming 
+        // work schedule complete , upcoming
         // {"date": "2023-11-07", "interval": ["21:52", "22:30"]} // Dữ liệu trong db phải đúng như này (yyyy-mm-dd) (HH:ii)
-        // mỗi bộ gồm 2 số 
+        // mỗi bộ gồm 2 số
         $query->when(!empty($filter->status), function ($query) use ($filter) {
             $day = now()->toDateString();
             $hour = now()->format('H:i');
-            if($filter->status == 'complete') {
-                $query->where('time->date', '<' ,$day)
-                ->orWhere(function ($query) use ($day, $hour) {
-                    $query->where('time->date', '=' ,$day)->where('time->interval[0]', '<', $hour);
-                });
+            if ($filter->status == 'complete') {
+                $query->where('time->date', '<', $day)
+                    ->orWhere(function ($query) use ($day, $hour) {
+                        $query->where('time->date', '=', $day)->where('time->interval[0]', '<', $hour);
+                    });
             } else {
-                $query->where('time->date', '>' ,$day)
-                ->orWhere(function ($query) use ($day, $hour) {
-                    $query->where('time->date', '=' ,$day)->where('time->interval[0]', '>=', $hour);
-                });
+                $query->where('time->date', '>', $day)
+                    ->orWhere(function ($query) use ($day, $hour) {
+                        $query->where('time->date', '=', $day)->where('time->interval[0]', '>=', $hour);
+                    });
             }
         });
+
         return $query;
     }
 }
