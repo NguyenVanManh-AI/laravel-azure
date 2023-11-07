@@ -87,6 +87,17 @@ class InforDoctorService
                     $inforUser = InforDoctorRepository::updateResult($inforUser, ['search_number' => $search_number]);
                     // search number
 
+                    // department
+                    $department = Department::find($inforUser->id_department);
+                    $inforUser->department = $department;
+                    // department
+
+                    // infor hospital
+                    $hospital = User::find($inforUser->id_hospital);
+                    $inforHospital = InforHospital::where('id_hospital', $inforUser->id_hospital)->first();
+                    $inforUser->infor_hospital = array_merge($hospital->toArray(), $inforHospital->toArray());
+                    // infor hospital
+
                     // infor extend doctor
                     $inforExtendDoctor = InforExtendDoctor::where('id_doctor', $inforUser->id_doctor)->first();
 
@@ -136,11 +147,6 @@ class InforDoctorService
                     }
                     $inforUser->rating = $bigRating;
                     // rating
-
-                    // department
-                    $department = Department::find($inforUser->id_department);
-                    $inforUser->department = $department;
-                    // department
 
                     $doctor = array_merge($user->toArray(), $inforUser->toArray());
 
