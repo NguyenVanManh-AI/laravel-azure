@@ -176,6 +176,7 @@ Route::prefix('hospital-department')->controller(HospitalDepartmentController::c
         Route::delete('/{id}', 'delete');
     });
     Route::get('/hospital/{id}', 'departmentOfHospital');
+    Route::get('/hospital-select/{id}', 'departmentOfHospitalSelect');
     Route::get('/detail/{id}', 'details');
 });
 

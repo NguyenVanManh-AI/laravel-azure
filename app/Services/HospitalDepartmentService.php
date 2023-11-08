@@ -8,6 +8,7 @@ use App\Models\InforDoctor;
 use App\Repositories\DepartmentRepository;
 use App\Repositories\HospitalDepartmentInterface;
 use App\Repositories\HospitalServiceRepository;
+use App\Repositories\InforDoctorRepository;
 use App\Repositories\InforHospitalRepository;
 use Illuminate\Http\Request;
 use Throwable;
@@ -119,17 +120,30 @@ class HospitalDepartmentService
                 return $this->responseError(400, 'Không tìm thấy bệnh viện !');
             }
 
-            $orderBy = 'hospital_departments.id';
-            $orderDirection = 'ASC';
+            $orderBy = $request->typesort ?? 'hospital_departments.id';
+            switch ($orderBy) {
+                case 'name':
+                    $orderBy = 'departments.name';
+                    break;
 
-            if ($request->sortlatest == 'true') {
-                $orderBy = 'hospital_departments.id';
-                $orderDirection = 'DESC';
+                case 'new':
+                    $orderBy = 'hospital_departments.id';
+                    break;
+
+                default:
+                    $orderBy = 'hospital_departments.id';
+                    break;
             }
 
-            if ($request->sortname == 'true') {
-                $orderBy = 'departments.name';
-                $orderDirection = ($request->sortlatest == 'true') ? 'DESC' : 'ASC';
+            $orderDirection = $request->sortlatest ?? 'true';
+            switch ($orderDirection) {
+                case 'true':
+                    $orderDirection = 'DESC';
+                    break;
+
+                default:
+                    $orderDirection = 'ASC';
+                    break;
             }
 
             $filter = (object) [
@@ -143,6 +157,72 @@ class HospitalDepartmentService
                 $hospitalDepartments = $this->hospitalDepartment->searchHospitalDepartment($filter)->paginate($request->paginate);
             } else {
                 $hospitalDepartments = $this->hospitalDepartment->searchHospitalDepartment($filter)->get();
+            }
+
+            return $this->responseOK(200, $hospitalDepartments, 'Xem tất cả khoa của bệnh viện thành công !');
+        } catch (Throwable $e) {
+            return $this->responseError(400, $e->getMessage());
+        }
+    }
+
+    public function departmentOfHospitalSelect(Request $request, $id)
+    {
+        try {
+            $hospital = InforHospitalRepository::getInforHospital(['id_hospital' => $id])->first();
+            if (empty($hospital)) {
+                return $this->responseError(400, 'Không tìm thấy bệnh viện !');
+            }
+
+            $orderBy = $request->typesort ?? 'hospital_departments.id';
+            switch ($orderBy) {
+                case 'name':
+                    $orderBy = 'departments.name';
+                    break;
+
+                case 'new':
+                    $orderBy = 'hospital_departments.id';
+                    break;
+
+                default:
+                    $orderBy = 'hospital_departments.id';
+                    break;
+            }
+
+            $orderDirection = $request->sortlatest ?? 'true';
+            switch ($orderDirection) {
+                case 'true':
+                    $orderDirection = 'DESC';
+                    break;
+
+                default:
+                    $orderDirection = 'ASC';
+                    break;
+            }
+
+            $filter = (object) [
+                'search' => $request->search ?? '',
+                'id_hospital' => $id,
+                'orderBy' => $orderBy,
+                'orderDirection' => $orderDirection,
+            ];
+
+            if (!(empty($request->paginate))) {
+                $hospitalDepartments = $this->hospitalDepartment->searchHospitalDepartment($filter)->paginate($request->paginate);
+            } else {
+                $hospitalDepartments = $this->hospitalDepartment->searchHospitalDepartment($filter)->get();
+                $hospitalServicesOptimize = [];
+                foreach ($hospitalDepartments as $hospitalDepartment) {
+                    // loại bỏ đi các khoa không có bác sĩ
+                    $filter = (object) [
+                        'id_department' => $hospitalDepartment->id_department,
+                        'id_hospital' => $hospitalDepartment->id_hospital,
+                    ];
+                    $n = InforDoctorRepository::getInforDoctor($filter)->count();
+                    if ($n > 0) {
+                        $hospitalServicesOptimize[] = $hospitalDepartment;
+                    }
+                }
+                $hospitalDepartments = $hospitalServicesOptimize;
             }
 
             return $this->responseOK(200, $hospitalDepartments, 'Xem tất cả khoa của bệnh viện thành công !');

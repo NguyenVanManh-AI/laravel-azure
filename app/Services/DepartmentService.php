@@ -125,7 +125,7 @@ class DepartmentService
     public function all(Request $request)
     {
         try {
-            // hospital
+            // hospital // cái này danh cho bệnh viện để xem đã có những khoa nào rồi (bên reponsitory có WhereNotIn)
             if ($request->id_hospital) {
                 $hospital = InforHospitalRepository::getInforHospital(['id_hospital' => $request->id_hospital])->first();
                 if (empty($hospital)) {
@@ -138,22 +138,34 @@ class DepartmentService
                 }
             }
 
-            $search = $request->search;
-            $orderBy = 'id';
-            $orderDirection = 'ASC';
+            $orderBy = $request->typesort ?? 'id';
+            switch ($orderBy) {
+                case 'name':
+                    $orderBy = 'name';
+                    break;
 
-            if ($request->sortlatest == 'true') {
-                $orderBy = 'id';
-                $orderDirection = 'DESC';
+                case 'new':
+                    $orderBy = 'id';
+                    break;
+
+                default:
+                    $orderBy = 'id';
+                    break;
             }
 
-            if ($request->sortname == 'true') {
-                $orderBy = 'name';
-                $orderDirection = ($request->sortlatest == 'true') ? 'DESC' : 'ASC';
+            $orderDirection = $request->sortlatest ?? 'true';
+            switch ($orderDirection) {
+                case 'true':
+                    $orderDirection = 'DESC';
+                    break;
+
+                default:
+                    $orderDirection = 'ASC';
+                    break;
             }
 
             $filter = (object) [
-                'search' => $search ?? '',
+                'search' => $request->search ?? '',
                 'orderBy' => $orderBy,
                 'orderDirection' => $orderDirection,
                 'id_departments' => $id_departments ?? [0],

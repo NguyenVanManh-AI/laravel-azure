@@ -188,22 +188,34 @@ class AdminService
     public function allAdmin(Request $request)
     {
         try {
-            $search = $request->search;
-            $orderBy = 'id';
-            $orderDirection = 'ASC';
+            $orderBy = $request->typesort ?? 'id';
+            switch ($orderBy) {
+                case 'name':
+                    $orderBy = 'name';
+                    break;
 
-            if ($request->sortlatest == 'true') {
-                $orderBy = 'id';
-                $orderDirection = 'DESC';
+                case 'new':
+                    $orderBy = 'id';
+                    break;
+
+                default:
+                    $orderBy = 'id';
+                    break;
             }
 
-            if ($request->sortname == 'true') {
-                $orderBy = 'name';
-                $orderDirection = ($request->sortlatest == 'true') ? 'DESC' : 'ASC';
+            $orderDirection = $request->sortlatest ?? 'true';
+            switch ($orderDirection) {
+                case 'true':
+                    $orderDirection = 'DESC';
+                    break;
+
+                default:
+                    $orderDirection = 'ASC';
+                    break;
             }
 
             $filter = (object) [
-                'search' => $search,
+                'search' => $request->search ?? '',
                 'role' => $request->role ?? '',
                 'orderBy' => $orderBy,
                 'orderDirection' => $orderDirection,
@@ -226,22 +238,34 @@ class AdminService
     public function allUser(Request $request)
     {
         try {
-            $search = $request->search;
-            $orderBy = 'id';
-            $orderDirection = 'ASC';
+            $orderBy = $request->typesort ?? 'id';
+            switch ($orderBy) {
+                case 'name':
+                    $orderBy = 'name';
+                    break;
 
-            if ($request->sortlatest == 'true') {
-                $orderBy = 'id';
-                $orderDirection = 'DESC';
+                case 'new':
+                    $orderBy = 'id';
+                    break;
+
+                default:
+                    $orderBy = 'id';
+                    break;
             }
 
-            if ($request->sortname == 'true') {
-                $orderBy = 'name';
-                $orderDirection = ($request->sortlatest == 'true') ? 'DESC' : 'ASC';
+            $orderDirection = $request->sortlatest ?? 'true';
+            switch ($orderDirection) {
+                case 'true':
+                    $orderDirection = 'DESC';
+                    break;
+
+                default:
+                    $orderDirection = 'ASC';
+                    break;
             }
 
             $filter = (object) [
-                'search' => $search,
+                'search' => $request->search ?? '',
                 'role' => $request->role ?? '',
                 'orderBy' => $orderBy,
                 'is_accept' => $request->is_accept ?? 'both',

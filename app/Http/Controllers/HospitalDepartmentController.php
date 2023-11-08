@@ -36,6 +36,11 @@ class HospitalDepartmentController extends Controller
         return $this->hospitalDepartmentService->departmentOfHospital($request, $id);
     }
 
+    public function departmentOfHospitalSelect(Request $request, $id)
+    {
+        return $this->hospitalDepartmentService->departmentOfHospitalSelect($request, $id);
+    }
+
     public function details($id)
     {
         return $this->hospitalDepartmentService->details($id);

@@ -143,24 +143,36 @@ class CategoryService
     public function all(Request $request)
     {
         try {
-            $search = $request->search;
-            $orderBy = 'id';
-            $orderDirection = 'ASC';
+            $orderBy = $request->typesort ?? 'id';
+            switch ($orderBy) {
+                case 'name':
+                    $orderBy = 'name';
+                    break;
 
-            if ($request->sortlatest == 'true') {
-                $orderBy = 'id';
-                $orderDirection = 'DESC';
+                case 'new':
+                    $orderBy = 'id';
+                    break;
+
+                default:
+                    $orderBy = 'id';
+                    break;
             }
 
-            if ($request->sortname == 'true') {
-                $orderBy = 'name';
-                $orderDirection = ($request->sortlatest == 'true') ? 'DESC' : 'ASC';
+            $orderDirection = $request->sortlatest ?? 'true';
+            switch ($orderDirection) {
+                case 'true':
+                    $orderDirection = 'DESC';
+                    break;
+
+                default:
+                    $orderDirection = 'ASC';
+                    break;
             }
 
             $filter = (object) [
                 'orderBy' => $orderBy,
                 'orderDirection' => $orderDirection,
-                'search' => $search,
+                'search' => $request->search ?? '',
             ];
 
             if (!(empty($request->paginate))) {// lấy cho category

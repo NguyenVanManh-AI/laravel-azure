@@ -241,28 +241,39 @@ class ArticleService
     public function adminManage(Request $request)
     {
         try {
-            // search theo name của category thì search theo select , option
-            $name_category = '';
-            if (!empty($request->name_category)) {
-                $name_category = $request->name_category;
-            }
-            $search = $request->search;
-            $orderBy = 'articles.id';
-            $orderDirection = 'ASC';
+            $orderBy = $request->typesort ?? 'articles.id';
+            switch ($orderBy) {
+                case 'name':
+                    $orderBy = 'articles.title';
+                    break;
 
-            if ($request->sortlatest == 'true') {
-                $orderBy = 'articles.id';
-                $orderDirection = 'DESC';
+                case 'new':
+                    $orderBy = 'articles.id';
+                    break;
+
+                case 'search_number': // sắp xếp theo bài viết nổi bật
+                    $orderBy = 'articles.search_number';
+                    break;
+
+                default:
+                    $orderBy = 'articles.id';
+                    break;
             }
 
-            if ($request->sortname == 'true') {
-                $orderBy = 'articles.title';
-                $orderDirection = ($request->sortlatest == 'true') ? 'DESC' : 'ASC';
+            $orderDirection = $request->sortlatest ?? 'true';
+            switch ($orderDirection) {
+                case 'true':
+                    $orderDirection = 'DESC';
+                    break;
+
+                default:
+                    $orderDirection = 'ASC';
+                    break;
             }
 
             $filter = (object) [
-                'search' => $search,
-                'name_category' => $name_category,
+                'search' => $request->search ?? '',
+                'name_category' => $request->name_category ?? '',
                 'orderBy' => $orderBy,
                 'orderDirection' => $orderDirection,
                 'is_accept' => $request->is_accept ?? 'both',
@@ -298,27 +309,39 @@ class ArticleService
                 $idDoctorHospitals[] = $doctor->id_doctor;
             }
 
-            $name_category = '';
-            if (!empty($request->name_category)) {
-                $name_category = $request->name_category;
-            }
-            $search = $request->search;
-            $orderBy = 'articles.id';
-            $orderDirection = 'ASC';
+            $orderBy = $request->typesort ?? 'articles.id';
+            switch ($orderBy) {
+                case 'name':
+                    $orderBy = 'articles.title';
+                    break;
 
-            if ($request->sortlatest == 'true') {
-                $orderBy = 'articles.id';
-                $orderDirection = 'DESC';
+                case 'new':
+                    $orderBy = 'articles.id';
+                    break;
+
+                case 'search_number': // sắp xếp theo bài viết nổi bật
+                    $orderBy = 'articles.search_number';
+                    break;
+
+                default:
+                    $orderBy = 'articles.id';
+                    break;
             }
 
-            if ($request->sortname == 'true') {
-                $orderBy = 'articles.title';
-                $orderDirection = ($request->sortlatest == 'true') ? 'DESC' : 'ASC';
+            $orderDirection = $request->sortlatest ?? 'true';
+            switch ($orderDirection) {
+                case 'true':
+                    $orderDirection = 'DESC';
+                    break;
+
+                default:
+                    $orderDirection = 'ASC';
+                    break;
             }
 
             $filter = (object) [
-                'search' => $search,
-                'name_category' => $name_category,
+                'search' => $request->search ?? '',
+                'name_category' => $request->name_category ?? '',
                 'orderBy' => $orderBy,
                 'orderDirection' => $orderDirection,
                 'is_accept' => $request->is_accept ?? 'both',
@@ -348,27 +371,39 @@ class ArticleService
                 return $this->responseError(400, 'Không tìm thấy người dùng !');
             }
 
-            $name_category = '';
-            if (!empty($request->name_category)) {
-                $name_category = $request->name_category;
-            }
-            $search = $request->search;
-            $orderBy = 'articles.id';
-            $orderDirection = 'ASC';
+            $orderBy = $request->typesort ?? 'articles.id';
+            switch ($orderBy) {
+                case 'name':
+                    $orderBy = 'articles.title';
+                    break;
 
-            if ($request->sortlatest == 'true') {
-                $orderBy = 'articles.id';
-                $orderDirection = 'DESC';
+                case 'new':
+                    $orderBy = 'articles.id';
+                    break;
+
+                case 'search_number': // sắp xếp theo bài viết nổi bật
+                    $orderBy = 'articles.search_number';
+                    break;
+
+                default:
+                    $orderBy = 'articles.id';
+                    break;
             }
 
-            if ($request->sortname == 'true') {
-                $orderBy = 'articles.title';
-                $orderDirection = ($request->sortlatest == 'true') ? 'DESC' : 'ASC';
+            $orderDirection = $request->sortlatest ?? 'true';
+            switch ($orderDirection) {
+                case 'true':
+                    $orderDirection = 'DESC';
+                    break;
+
+                default:
+                    $orderDirection = 'ASC';
+                    break;
             }
 
             $filter = (object) [
-                'search' => $search,
-                'name_category' => $name_category,
+                'search' => $request->search ?? '',
+                'name_category' => $request->name_category ?? '',
                 'orderBy' => $orderBy,
                 'orderDirection' => $orderDirection,
                 'is_accept' => $request->is_accept ?? 'both',
@@ -392,33 +427,39 @@ class ArticleService
     public function articleHome(Request $request)
     {
         try {
-            $name_category = '';
-            if (!empty($request->name_category)) {
-                $name_category = $request->name_category;
-            }
-            $search = $request->search;
-            $orderBy = 'articles.id';
-            $orderDirection = 'ASC';
+            $orderBy = $request->typesort ?? 'articles.id';
+            switch ($orderBy) {
+                case 'name':
+                    $orderBy = 'articles.title';
+                    break;
 
-            if ($request->sortlatest == 'true') {
-                $orderBy = 'articles.id';
-                $orderDirection = 'DESC';
+                case 'new':
+                    $orderBy = 'articles.id';
+                    break;
+
+                case 'search_number': // sắp xếp theo bài viết nổi bật
+                    $orderBy = 'articles.search_number';
+                    break;
+
+                default:
+                    $orderBy = 'articles.id';
+                    break;
             }
 
-            if ($request->sortname == 'true') {
-                $orderBy = 'articles.title';
-                $orderDirection = ($request->sortlatest == 'true') ? 'DESC' : 'ASC';
-            }
+            $orderDirection = $request->sortlatest ?? 'true';
+            switch ($orderDirection) {
+                case 'true':
+                    $orderDirection = 'DESC';
+                    break;
 
-            // sắp xếp theo bài viết nổi bật
-            if ($request->sort_search_number == 'true') {
-                $orderBy = 'articles.search_number';
-                $orderDirection = 'DESC';
+                default:
+                    $orderDirection = 'ASC';
+                    break;
             }
 
             $filter = (object) [
-                'search' => $search,
-                'name_category' => $name_category,
+                'search' => $request->search ?? '',
+                'name_category' => $request->name_category ?? '',
                 'orderBy' => $orderBy,
                 'orderDirection' => $orderDirection,
                 'is_accept' => 1,

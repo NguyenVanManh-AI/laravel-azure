@@ -441,24 +441,36 @@ class InforHospitalService
     public function allDoctor(Request $request)
     {
         try {
-            $search = $request->search;
-            $orderBy = 'users.id';
-            $orderDirection = 'ASC';
+            $orderBy = $request->typesort ?? 'users.id';
+            switch ($orderBy) {
+                case 'name':
+                    $orderBy = 'users.name';
+                    break;
 
-            if ($request->sortlatest == 'true') {
-                $orderBy = 'users.id';
-                $orderDirection = 'DESC';
+                case 'new':
+                    $orderBy = 'users.id';
+                    break;
+
+                default:
+                    $orderBy = 'users.id';
+                    break;
             }
 
-            if ($request->sortname == 'true') {
-                $orderBy = 'users.name';
-                $orderDirection = ($request->sortlatest == 'true') ? 'DESC' : 'ASC';
+            $orderDirection = $request->sortlatest ?? 'true';
+            switch ($orderDirection) {
+                case 'true':
+                    $orderDirection = 'DESC';
+                    break;
+
+                default:
+                    $orderDirection = 'ASC';
+                    break;
             }
 
             $user = Auth::user();
 
             $filter = (object) [
-                'search' => $search,
+                'search' => $request->search ?? '',
                 'role' => 'doctor',
                 'orderBy' => $orderBy,
                 'is_accept' => $request->is_accept ?? 'both',
@@ -499,22 +511,34 @@ class InforHospitalService
     public function allDoctorCare(Request $request)
     {
         try {
-            $search = $request->search;
-            $orderBy = 'users.id';
-            $orderDirection = 'ASC';
+            $orderBy = $request->typesort ?? 'users.id';
+            switch ($orderBy) {
+                case 'name':
+                    $orderBy = 'users.name';
+                    break;
 
-            if ($request->sortlatest == 'true') {
-                $orderBy = 'users.id';
-                $orderDirection = 'DESC';
+                case 'new':
+                    $orderBy = 'users.id';
+                    break;
+
+                default:
+                    $orderBy = 'users.id';
+                    break;
             }
 
-            if ($request->sortname == 'true') {
-                $orderBy = 'users.name';
-                $orderDirection = ($request->sortlatest == 'true') ? 'DESC' : 'ASC';
+            $orderDirection = $request->sortlatest ?? 'true';
+            switch ($orderDirection) {
+                case 'true':
+                    $orderDirection = 'DESC';
+                    break;
+
+                default:
+                    $orderDirection = 'ASC';
+                    break;
             }
 
             $filter = (object) [
-                'search' => $search,
+                'search' => $request->search ?? '',
                 'role' => 'doctor',
                 'orderBy' => $orderBy,
                 'is_accept' => 1,
@@ -543,22 +567,34 @@ class InforHospitalService
                 return $this->responseError(400, 'Không tìm thấy bệnh viện !');
             }
 
-            $search = $request->search;
-            $orderBy = 'users.id';
-            $orderDirection = 'ASC';
+            $orderBy = $request->typesort ?? 'users.id';
+            switch ($orderBy) {
+                case 'name':
+                    $orderBy = 'users.name';
+                    break;
 
-            if ($request->sortlatest == 'true') {
-                $orderBy = 'users.id';
-                $orderDirection = 'DESC';
+                case 'new':
+                    $orderBy = 'users.id';
+                    break;
+
+                default:
+                    $orderBy = 'users.id';
+                    break;
             }
 
-            if ($request->sortname == 'true') {
-                $orderBy = 'users.name';
-                $orderDirection = ($request->sortlatest == 'true') ? 'DESC' : 'ASC';
+            $orderDirection = $request->sortlatest ?? 'true';
+            switch ($orderDirection) {
+                case 'true':
+                    $orderDirection = 'DESC';
+                    break;
+
+                default:
+                    $orderDirection = 'ASC';
+                    break;
             }
 
             $filter = (object) [
-                'search' => $search,
+                'search' => $request->search ?? '',
                 'role' => 'doctor',
                 'orderBy' => $orderBy,
                 'is_accept' => 1,
@@ -602,28 +638,38 @@ class InforHospitalService
     public function allHospital(Request $request)
     {
         try {
-            $search = $request->search;
-            $orderBy = 'users.id';
-            $orderDirection = 'ASC';
+            $orderBy = $request->typesort ?? 'users.id';
+            switch ($orderBy) {
+                case 'name':
+                    $orderBy = 'users.name';
+                    break;
 
-            if ($request->sortlatest == 'true') {
-                $orderBy = 'users.id';
-                $orderDirection = 'DESC';
+                case 'new':
+                    $orderBy = 'users.id';
+                    break;
+
+                case 'search_number': // sắp xếp theo bệnh viện nổi bật
+                    $orderBy = 'infor_hospitals.search_number';
+                    break;
+
+                default:
+                    $orderBy = 'users.id';
+                    break;
             }
 
-            if ($request->sortname == 'true') {
-                $orderBy = 'users.name';
-                $orderDirection = ($request->sortlatest == 'true') ? 'DESC' : 'ASC';
-            }
+            $orderDirection = $request->sortlatest ?? 'true';
+            switch ($orderDirection) {
+                case 'true':
+                    $orderDirection = 'DESC';
+                    break;
 
-            // sắp xếp theo bài viết nổi bật
-            if ($request->sort_search_number == 'true') {
-                $orderBy = 'infor_hospitals.search_number';
-                $orderDirection = 'DESC';
+                default:
+                    $orderDirection = 'ASC';
+                    break;
             }
 
             $filter = (object) [
-                'search' => $search,
+                'search' => $request->search ?? '',
                 'is_accept' => 1,
                 'orderBy' => $orderBy,
                 'orderDirection' => $orderDirection,
@@ -631,21 +677,16 @@ class InforHospitalService
 
             if (!(empty($request->paginate))) {
                 $hospitals = InforHospitalRepository::searchHospital($filter)->paginate($request->paginate);
-                foreach ($hospitals as $hospital) {
-                    $hospital->infrastructure = json_decode($hospital->infrastructure);
-                    $hospital->location = json_decode($hospital->location);
-                }
-
-                return $this->responseOK(200, $hospitals, 'Xem tất cả bệnh viện thành công !');
             } else {
                 $hospitals = InforHospitalRepository::searchHospital($filter)->get();
-                foreach ($hospitals as $hospital) {
-                    $hospital->infrastructure = json_decode($hospital->infrastructure);
-                    $hospital->location = json_decode($hospital->location);
-                }
-
-                return $this->responseOK(200, $hospitals, 'Xem tất cả bệnh viện thành công !');
             }
+
+            foreach ($hospitals as $hospital) {
+                $hospital->infrastructure = json_decode($hospital->infrastructure);
+                $hospital->location = json_decode($hospital->location);
+            }
+
+            return $this->responseOK(200, $hospitals, 'Xem tất cả bệnh viện thành công !');
         } catch (Throwable $e) {
             return $this->responseError(400, $e->getMessage());
         }

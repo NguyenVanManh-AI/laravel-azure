@@ -277,7 +277,7 @@ class WorkScheduleService
                     $orderBy = 'time->date';
                     break;
 
-                case 'latest':
+                case 'new':
                     $orderBy = 'work_schedules.id';
                     break;
 
@@ -349,7 +349,7 @@ class WorkScheduleService
                     $orderBy = 'time->date';
                     break;
 
-                case 'latest':
+                case 'new':
                     $orderBy = 'work_schedules.id';
                     break;
 
@@ -419,7 +419,7 @@ class WorkScheduleService
                     $orderBy = 'time->date';
                     break;
 
-                case 'latest':
+                case 'new':
                     $orderBy = 'work_schedules.id';
                     break;
 

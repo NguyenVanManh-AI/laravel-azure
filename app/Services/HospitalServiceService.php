@@ -9,6 +9,7 @@ use App\Models\Rating;
 use App\Models\WorkSchedule;
 use App\Repositories\HospitalDepartmentRepository;
 use App\Repositories\HospitalServiceInterface;
+use App\Repositories\InforDoctorRepository;
 use App\Repositories\RatingRepository;
 use App\Repositories\UserRepository;
 use Illuminate\Http\Request;
@@ -132,22 +133,35 @@ class HospitalServiceService
     {
         try {
             $user = auth()->guard('user_api')->user();
-            $search = $request->search;
-            $orderBy = 'id_hospital_service';
-            $orderDirection = 'ASC';
 
-            if ($request->sortlatest == 'true') {
-                $orderBy = 'id_hospital_service';
-                $orderDirection = 'DESC';
+            $orderBy = $request->typesort ?? 'id_hospital_service';
+            switch ($orderBy) {
+                case 'name':
+                    $orderBy = 'hospital_services.name';
+                    break;
+
+                case 'new':
+                    $orderBy = 'id_hospital_service';
+                    break;
+
+                default:
+                    $orderBy = 'id_hospital_service';
+                    break;
             }
 
-            if ($request->sortname == 'true') {
-                $orderBy = 'hospital_services.name';
-                $orderDirection = ($request->sortlatest == 'true') ? 'DESC' : 'ASC';
+            $orderDirection = $request->sortlatest ?? 'true';
+            switch ($orderDirection) {
+                case 'true':
+                    $orderDirection = 'DESC';
+                    break;
+
+                default:
+                    $orderDirection = 'ASC';
+                    break;
             }
 
             $filter = (object) [
-                'search' => $search,
+                'search' => $request->search ?? '',
                 'orderBy' => $orderBy,
                 'orderDirection' => $orderDirection,
                 'id_hospital' => $user->id,
@@ -196,22 +210,34 @@ class HospitalServiceService
                 return $this->responseError(400, 'Không tìm thấy bệnh viện !');
             }
 
-            $search = $request->search;
-            $orderBy = 'id_hospital_service';
-            $orderDirection = 'ASC';
+            $orderBy = $request->typesort ?? 'id_hospital_service';
+            switch ($orderBy) {
+                case 'name':
+                    $orderBy = 'hospital_services.name';
+                    break;
 
-            if ($request->sortlatest == 'true') {
-                $orderBy = 'id_hospital_service';
-                $orderDirection = 'DESC';
+                case 'new':
+                    $orderBy = 'id_hospital_service';
+                    break;
+
+                default:
+                    $orderBy = 'id_hospital_service';
+                    break;
             }
 
-            if ($request->sortname == 'true') {
-                $orderBy = 'hospital_services.name';
-                $orderDirection = ($request->sortlatest == 'true') ? 'DESC' : 'ASC';
+            $orderDirection = $request->sortlatest ?? 'true';
+            switch ($orderDirection) {
+                case 'true':
+                    $orderDirection = 'DESC';
+                    break;
+
+                default:
+                    $orderDirection = 'ASC';
+                    break;
             }
 
             $filter = (object) [
-                'search' => $search,
+                'search' => $request->search ?? '',
                 'orderBy' => $orderBy,
                 'orderDirection' => $orderDirection,
                 'id_hospital' => $user->id,
@@ -293,9 +319,23 @@ class HospitalServiceService
                 }
             } else { // all
                 $hospitalServices = $this->hospitalService->searchAll($filter)->get();
+
+                $hospitalServicesOptimize = [];
                 foreach ($hospitalServices as $index => $hospitalService) {
                     $hospitalService->infor = json_decode($hospitalService->infor);
+
+                    // loại bỏ đi các dịch vụ không có bác sĩ
+                    $filter = (object) [
+                        'id_department' => $hospitalService->id_department,
+                        'id_hospital' => $hospitalService->id_hospital,
+                    ];
+                    $n = InforDoctorRepository::getInforDoctor($filter)->count();
+                    if ($n > 0) {
+                        $hospitalServicesOptimize[] = $hospitalService;
+                    }
                 }
+
+                $hospitalServices = $hospitalServicesOptimize;
             }
 
             return $this->responseOK(200, $hospitalServices, 'Xem tất cả dịch vụ của bệnh viện thành công !');
@@ -481,22 +521,34 @@ class HospitalServiceService
     public function all(Request $request)
     {
         try {
-            $search = $request->search;
-            $orderBy = 'id_hospital_service';
-            $orderDirection = 'ASC';
+            $orderBy = $request->typesort ?? 'id_hospital_service';
+            switch ($orderBy) {
+                case 'name':
+                    $orderBy = 'name';
+                    break;
 
-            if ($request->sortlatest == 'true') {
-                $orderBy = 'id_hospital_service';
-                $orderDirection = 'DESC';
+                case 'new':
+                    $orderBy = 'id_hospital_service';
+                    break;
+
+                default:
+                    $orderBy = 'id_hospital_service';
+                    break;
             }
 
-            if ($request->sortname == 'true') {
-                $orderBy = 'name';
-                $orderDirection = ($request->sortlatest == 'true') ? 'DESC' : 'ASC';
+            $orderDirection = $request->sortlatest ?? 'true';
+            switch ($orderDirection) {
+                case 'true':
+                    $orderDirection = 'DESC';
+                    break;
+
+                default:
+                    $orderDirection = 'ASC';
+                    break;
             }
 
             $filter = (object) [
-                'search' => $search,
+                'search' => $request->search ?? '',
                 'orderBy' => $orderBy,
                 'orderDirection' => $orderDirection,
                 'is_delete' => 0,

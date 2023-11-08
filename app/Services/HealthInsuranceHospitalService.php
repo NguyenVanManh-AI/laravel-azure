@@ -93,22 +93,34 @@ class HealthInsuranceHospitalService
     public function ofHospital(Request $request, $id)
     {
         try {
-            $search = $request->search;
-            $orderBy = 'health_insurance_hospitals.id';
-            $orderDirection = 'ASC';
+            $orderBy = $request->typesort ?? 'health_insurance_hospitals.id';
+            switch ($orderBy) {
+                case 'name':
+                    $orderBy = 'health_insurances.name';
+                    break;
 
-            if ($request->sortlatest == 'true') {
-                $orderBy = 'health_insurance_hospitals.id';
-                $orderDirection = 'DESC';
+                case 'new':
+                    $orderBy = 'health_insurance_hospitals.id';
+                    break;
+
+                default:
+                    $orderBy = 'health_insurance_hospitals.id';
+                    break;
             }
 
-            if ($request->sortname == 'true') {
-                $orderBy = 'health_insurances.name';
-                $orderDirection = ($request->sortlatest == 'true') ? 'DESC' : 'ASC';
+            $orderDirection = $request->sortlatest ?? 'true';
+            switch ($orderDirection) {
+                case 'true':
+                    $orderDirection = 'DESC';
+                    break;
+
+                default:
+                    $orderDirection = 'ASC';
+                    break;
             }
 
             $filter = (object) [
-                'search' => $search,
+                'search' => $request->search ?? '',
                 'orderBy' => $orderBy,
                 'orderDirection' => $orderDirection,
                 'id_hospital' => $id,

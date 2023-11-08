@@ -226,6 +226,9 @@ class TimeWorkService
                 }
             }
 
+            // price
+            $timeWork->price = $hospitalDepartment->price;
+
             return $this->responseOK(200, $timeWork, 'Xem chi tiết lịch làm việc thành công !');
         } catch (Throwable $e) {
             return response()->json(['message' => $e->getMessage()], 400);
