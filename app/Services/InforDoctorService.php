@@ -95,6 +95,8 @@ class InforDoctorService
                     // infor hospital
                     $hospital = User::find($inforUser->id_hospital);
                     $inforHospital = InforHospital::where('id_hospital', $inforUser->id_hospital)->first();
+                    $inforHospital->infrastructure = json_decode($inforHospital->infrastructure);
+                    $inforHospital->location = json_decode($inforHospital->location);
                     $inforUser->infor_hospital = array_merge($hospital->toArray(), $inforHospital->toArray());
                     // infor hospital
 
