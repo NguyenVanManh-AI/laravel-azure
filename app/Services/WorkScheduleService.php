@@ -498,11 +498,13 @@ class WorkScheduleService
             $endTime = $workSchedule->work_schedule_time->interval[1];
             $day = $workSchedule->work_schedule_time->date;
 
-            $contentDoctor = "Lịch làm việc giữa bạn và $workSchedule->user_name trong khoảng thời gian từ $startTime đến $endTime vào ngày $day đã bị bởi người dùng !";
             $contentHospital = "Lịch làm việc giữa bác sĩ $workSchedule->doctor_name và khách hàng $workSchedule->user_name trong khoảng thời gian từ $startTime đến $endTime vào ngày $day đã bị bởi người dùng !";
             $contentUser = "Lịch làm việc giữa bạn và bác sĩ $workSchedule->doctor_name thuộc bệnh viện $workSchedule->hospital_name trong khoảng thời gian từ $startTime đến $endTime vào ngày $day đã được hủy thành công !";
 
-            Queue::push(new SendMailNotify($workSchedule->doctor_email, $contentDoctor));
+            if ($workSchedule->doctor_email) {
+                $contentDoctor = "Lịch làm việc giữa bạn và $workSchedule->user_name trong khoảng thời gian từ $startTime đến $endTime vào ngày $day đã bị bởi người dùng !";
+                Queue::push(new SendMailNotify($workSchedule->doctor_email, $contentDoctor));
+            }
             Queue::push(new SendMailNotify($workSchedule->hospital_email, $contentHospital));
             Queue::push(new SendMailNotify($workSchedule->user_email, $contentUser));
 
@@ -536,11 +538,13 @@ class WorkScheduleService
             $endTime = $workSchedule->work_schedule_time->interval[1];
             $day = $workSchedule->work_schedule_time->date;
 
-            $contentDoctor = "Lịch làm việc giữa bạn và $workSchedule->user_name trong khoảng thời gian từ $startTime đến $endTime vào ngày $day đã bị bởi bệnh viện !";
             $contentHospital = "Lịch làm việc giữa bác sĩ $workSchedule->doctor_name và khách hàng $workSchedule->user_name trong khoảng thời gian từ $startTime đến $endTime vào ngày $day đã được hủy thành công !";
             $contentUser = "Lịch làm việc giữa bạn và bác sĩ $workSchedule->doctor_name thuộc bệnh viện $workSchedule->hospital_name trong khoảng thời gian từ $startTime đến $endTime vào ngày $day đã bị hủy bởi bệnh viện !";
 
-            Queue::push(new SendMailNotify($workSchedule->doctor_email, $contentDoctor));
+            if ($workSchedule->doctor_email) {
+                $contentDoctor = "Lịch làm việc giữa bạn và $workSchedule->user_name trong khoảng thời gian từ $startTime đến $endTime vào ngày $day đã bị bởi bệnh viện !";
+                Queue::push(new SendMailNotify($workSchedule->doctor_email, $contentDoctor));
+            }
             Queue::push(new SendMailNotify($workSchedule->hospital_email, $contentHospital));
             Queue::push(new SendMailNotify($workSchedule->user_email, $contentUser));
 
@@ -571,11 +575,13 @@ class WorkScheduleService
                     $endTime = $workSchedule->work_schedule_time->interval[1];
                     $day = $workSchedule->work_schedule_time->date;
 
-                    $contentDoctor = "Lịch làm việc giữa bạn và $workSchedule->user_name trong khoảng thời gian từ $startTime đến $endTime vào ngày $day đã bị bởi người dùng !";
                     $contentHospital = "Lịch làm việc giữa bác sĩ $workSchedule->doctor_name và khách hàng $workSchedule->user_name trong khoảng thời gian từ $startTime đến $endTime vào ngày $day đã bị bởi người dùng !";
                     $contentUser = "Lịch làm việc giữa bạn và bác sĩ $workSchedule->doctor_name thuộc bệnh viện $workSchedule->hospital_name trong khoảng thời gian từ $startTime đến $endTime vào ngày $day đã được hủy thành công !";
 
-                    Queue::push(new SendMailNotify($workSchedule->doctor_email, $contentDoctor));
+                    if ($workSchedule->doctor_email) {
+                        $contentDoctor = "Lịch làm việc giữa bạn và $workSchedule->user_name trong khoảng thời gian từ $startTime đến $endTime vào ngày $day đã bị bởi người dùng !";
+                        Queue::push(new SendMailNotify($workSchedule->doctor_email, $contentDoctor));
+                    }
                     Queue::push(new SendMailNotify($workSchedule->hospital_email, $contentHospital));
                     Queue::push(new SendMailNotify($workSchedule->user_email, $contentUser));
 
@@ -612,11 +618,13 @@ class WorkScheduleService
                     $endTime = $workSchedule->work_schedule_time->interval[1];
                     $day = $workSchedule->work_schedule_time->date;
 
-                    $contentDoctor = "Lịch làm việc giữa bạn và $workSchedule->user_name trong khoảng thời gian từ $startTime đến $endTime vào ngày $day đã bị bởi bệnh viện !";
                     $contentHospital = "Lịch làm việc giữa bác sĩ $workSchedule->doctor_name và khách hàng $workSchedule->user_name trong khoảng thời gian từ $startTime đến $endTime vào ngày $day đã được hủy thành công !";
                     $contentUser = "Lịch làm việc giữa bạn và bác sĩ $workSchedule->doctor_name thuộc bệnh viện $workSchedule->hospital_name trong khoảng thời gian từ $startTime đến $endTime vào ngày $day đã bị hủy bởi bệnh viện !";
 
-                    Queue::push(new SendMailNotify($workSchedule->doctor_email, $contentDoctor));
+                    if ($workSchedule->doctor_email) {
+                        $contentDoctor = "Lịch làm việc giữa bạn và $workSchedule->user_name trong khoảng thời gian từ $startTime đến $endTime vào ngày $day đã bị bởi bệnh viện !";
+                        Queue::push(new SendMailNotify($workSchedule->doctor_email, $contentDoctor));
+                    }
                     Queue::push(new SendMailNotify($workSchedule->hospital_email, $contentHospital));
                     Queue::push(new SendMailNotify($workSchedule->user_email, $contentUser));
 
