@@ -550,6 +550,8 @@ class WorkScheduleService
 
             $workSchedule->delete();
             Rating::where('id_work_schedule', $id_work_schedule)->delete(); // xóa lịch => xóa rating tương ứng
+
+            return $this->responseOK(200, null, 'Hủy bỏ lịch tư vấn , dịch vụ thành công !');
         } catch (Throwable $e) {
             return $this->responseError(400, $e->getMessage());
         }
