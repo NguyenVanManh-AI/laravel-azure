@@ -16,6 +16,7 @@ use App\Repositories\HospitalDepartmentRepository;
 use App\Repositories\InforDoctorInterface;
 use App\Repositories\InforDoctorRepository;
 use App\Repositories\RatingRepository;
+use App\Repositories\TimeWorkRepository;
 use App\Repositories\UserRepository;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
@@ -99,6 +100,15 @@ class InforDoctorService
                     $inforHospital->location = json_decode($inforHospital->location);
                     $inforUser->infor_hospital = array_merge($hospital->toArray(), $inforHospital->toArray());
                     // infor hospital
+
+                    // time work
+                    $filter = (object) [
+                        'id_hospital' => $inforUser->id_hospital,
+                    ];
+                    $timeWork = TimeWorkRepository::getTimeWork($filter)->first();
+                    $timeWork->times = json_decode($timeWork->times);
+                    $inforUser->time_work = $timeWork;
+                    // time work
 
                     // infor extend doctor
                     $inforExtendDoctor = InforExtendDoctor::where('id_doctor', $inforUser->id_doctor)->first();
