@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Http\Requests\RequestCreateArticle;
 use App\Http\Requests\RequestUpdateArticle;
+use App\Models\Category;
 use App\Repositories\ArticleInterface;
 use App\Repositories\ArticleRepository;
 use App\Repositories\CategoryRepository;
@@ -494,6 +495,13 @@ class ArticleService
                 ArticleRepository::updateArticle($_article, ['search_number' => $search_number]);
                 $article->search_number_article = $search_number;
                 // search number
+
+                // search number category
+                if ($article->id_category) {
+                    $category = Category::find($article->id_category);
+                    $category->update(['search_number' => $category->search_number + 1]);
+                }
+                // search number category
 
                 return $this->responseOK(200, $article, 'Xem bài viết chi tiết thành công !');
             } else {
