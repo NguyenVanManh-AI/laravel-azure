@@ -2,15 +2,14 @@
 <html>
 
 <head>
-    <title>Reset Password</title>
+    <title>Thông tin tài khoản</title>
 </head>
 
 <body>
-    <h1>New Password for New Admin</h1>
-    <h2>Use this account to log in to the system and change your password !<br>
+    <h3>Hãy sử dụng tài khoản này để đăng nhập vào hệ thống và đổi mật khẩu !<br>
         <h4>Email : {{$email}}</h4>
         <h4>Password : {{$new_password}}</h4>
-    </h2>
+    </h3>
 </body>
 
 </html>

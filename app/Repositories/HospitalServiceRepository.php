@@ -73,8 +73,8 @@ class HospitalServiceRepository extends BaseRepository implements HospitalServic
             hospital_departments.price as price_hospital_departments,
             
             users_hospital.name as name_hospital, departments.name as name_department,
-            departments.thumbnail as thumbnail_department,infor_hospitals.province_code as provider_code_service
-
+            departments.thumbnail as thumbnail_department,infor_hospitals.province_code as provider_code_service,
+            infor_hospitals.cover_hospital as cover_hospital
             
             ')
             ->join('hospital_departments', 'hospital_departments.id', '=', 'hospital_services.id_hospital_department')

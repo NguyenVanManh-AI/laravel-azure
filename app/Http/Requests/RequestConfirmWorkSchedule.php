@@ -6,7 +6,7 @@ use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 
-class RequestCreateWorkScheduleAdvise extends FormRequest
+class RequestConfirmWorkSchedule extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -26,16 +26,7 @@ class RequestCreateWorkScheduleAdvise extends FormRequest
     public function rules()
     {
         return [
-            'id_doctor' => 'required|integer',
-            'time' => 'required',
-
-            'name_patient' => 'required|string',
-            'date_of_birth_patient' => 'required|string|min:1',
-            'gender_patient' => 'required|in:0,1,2',
-            'email_patient' => 'required|string|email',
-            'phone_patient' => 'required|min:9|numeric',
-            'address_patient' => 'required|string',
-            'health_condition' => 'required|string',
+            'is_confirm' => 'required|in:0,1',
         ];
     }
 

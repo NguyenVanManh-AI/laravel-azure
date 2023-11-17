@@ -19,6 +19,8 @@ class MailNotify extends Mailable
 
     public function build()
     {
-        return $this->view('emails.mail_notify')->with(['content' => $this->content]);
+        $subject = 'Thông báo từ hệ thống Elister Health Care'; // tiêu đề cho mail
+
+        return $this->subject($subject)->view('emails.mail_notify')->with(['content' => $this->content]);
     }
 }

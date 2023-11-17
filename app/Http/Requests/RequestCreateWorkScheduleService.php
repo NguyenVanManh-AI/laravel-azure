@@ -28,6 +28,14 @@ class RequestCreateWorkScheduleService extends FormRequest
         return [
             'id_hospital_service' => 'required|integer',
             'time' => 'required',
+
+            'name_patient' => 'required|string',
+            'date_of_birth_patient' => 'required|string|min:1',
+            'gender_patient' => 'required|in:0,1,2',
+            'email_patient' => 'required|string|email',
+            'phone_patient' => 'required|min:9|numeric',
+            'address_patient' => 'required|string',
+            'health_condition' => 'required|string',
         ];
     }
 

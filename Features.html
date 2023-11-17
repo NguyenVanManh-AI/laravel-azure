@@ -598,3 +598,140 @@ Thống kê :
         + Quản lí theo dạng bảng ?
             + Dịch vụ / Chuyên khóa chứa dịch vụ có doanh thu cao (trong tuần/tháng/năm)
             + Bác sĩ / Chuyên khoa có tư vấn cao (trong tuần/tháng/năm)
+
+
+-------------------------------------------------------
++ Cách để kiểm tra người dùng có đăng nhập hay không bằng Backend 
+
+public function addAdvise(RequestCreateWorkScheduleAdvise $request)
+{
+    try {
+
+        $user = null;
+        if ($request->hasHeader('Authorization')) $user = Auth::guard('user_api')->user();
+    
+
+Route : 
+Route::prefix('work-schedule')->controller(WorkScheduleController::class)->group(function () {
+    Route::middleware(['auth:user_api', 'role:user'])->group(function () {
+        Route::get('/user', 'userWorkSchedule');
+        Route::delete('/user-cancel/{id}', 'userCancel');
+        Route::delete('/user-cancel-many', 'userCancelMany');
+    });
+
+    Route::middleware(['auth:user_api', 'role:hospital'])->group(function () {
+        Route::get('/hospital', 'hospitalWorkSchedule');
+        Route::get('/list-specify/{id_work_schedule}', 'listSpecifyDoctor');
+        Route::post('/specify-doctor', 'specifyDoctor');
+        Route::delete('/hospital-cancel/{id}', 'hospitalCancel');
+        Route::delete('/hospital-cancel-many', 'hospitalCancelMany');
+    });
+
+    Route::middleware(['auth:user_api', 'role:doctor'])->group(function () {
+        Route::get('/doctor', 'doctorWorkSchedule');
+    });
+
+    Route::post('add-advise', 'addAdvise');  <== 
+    Route::post('add-service', 'addService'); <== 
+});
+
++ Bình thường ta bọc các route trong middleware thì việc lấy ra bình thường rồi . 
+    => Nhưng nếu không bọc chúng trong middleware thì ta phải kiểm tra như trên : 
+    
+        $user = null;
+        if ($request->hasHeader('Authorization')) $user = Auth::guard('user_api')->user();
+    
+    => Thì mới lấy ra được biến $user 
+
+-------------------------------------------------------
++ thêm ảnh bìa cho bệnh viện (infor_hospital)
+    + cover_hospital
+
++ thêm mô tả cho category  
+    + description_category
+
++ thêm ảnh bìa cho dịch vụ 
+    + thumbnail_service
+    + search_number_service => Kiểm tra lại các API => bổ sung sort thêm search_number_service 
+    (Service of Hospital (Dashboard))
+
+=> Lưu ý : Các API đã được bổ sung thêm các thông tin mới này , nhưng nếu FrontEnd và Mobile thấy chỗ nào chưa có những 
+thông tin mới này thì nói để bổ sung vào .  
+
++ Note [QUAN TRỌNG] : Sau t4 , sau khi đã update lại hoàn chỉnh (category và department) 
+    cần thiết thì backup lại các ảnh category và ảnh department cùng với name tương ứng 
+    => cho name (tất nhiên là lấy từ database server) set cứng vào seed còn ảnh tương ứng thì nén thành file .gz rồi để trên server khi nào cần thì extract ra cho 
+    đỡ phải update lại từng cái ảnh  
+
+work_schedule 
+    + is_confirm 
+
+    + id_user (NULL - nếu đặt ẩn danh) => [QUAN TRỌNG => sửa lại chỗ này workschedule LEFT JOIN với users 
+                                            để users có null thì vẫn lấy ra workschedule đó ]
+
+    + name_benh_nhan 
+    + email_benh_nhan 
+    + sdt_benh_nhan 
+    + ngaysinh_benh_nhan 
+    + diachi_benh_nhan 
+    + mota_benh_trang 
+
++ [QUAN TRỌNG] . Bổ sung thêm lọc theo is_confirm true hoặc false 
++ CODE => Code API Confirm work_schedule
+
++ [CHỈNH SỬA LẠI SEED TƯƠNG ỨNG VỚI CÁC CHỈNH SỬA MỚI]
++ [CHỈNH LẠI FILE REQUEST TƯƠNG ỨNG]
+
++ WorkSchedule => thêm lọc những lịch chưa được chỉ định bác sĩ , những lịch đã được confirm , chưa confirm 
++ UPDATE LẠI FILE request của workschedule 
+    + khi tạo biến $partientn thì $request->name ?? '' => để nếu người dùng không nhập thì vẫn truyền vào 
+    rồi render html cho content được 
+
++ thong ke 
+Thống kê : 
+    + Admin : 
+        + Tổng Số người dùng 
+            + User 
+            + Doctor 
+            + Hospital
+
+            => Donut (Biểu đồ tròn) 
+
+        + Tăng trưởng người dùng (User, Doctor , Hospital) 
+            + start_date và end_date 
+
+            => Line mix column 
+
+        + Tăng trưởng Bài viết 
+            + start_date và end_date 
+            
+            => Line mix column 
+
+        + Top những bài viết được đọc nhiều nhất 
+        + Top những danh mục có lượt tìm kiếm cao nhất 
+        + Top Bệnh viện được tìm kiếm nhiều nhất 
+
+    + Bệnh viện 
+        + Tăng trưởng Doanh thu Tư vấn theo 
+            + start_date và end_date 
+            => Line mix column 
+
+        + Tăng trưởng Doanh thu dịch vụ theo 
+            + start_date và end_date 
+            => Line mix column 
+
+        + Quản lí theo dạng bảng ?
+            + Dịch vụ / Chuyên khóa chứa dịch vụ có doanh thu cao (trong tuần/tháng/năm)
+                + Doanh thu / Rating  
+            + Bác sĩ / Chuyên khoa có tư vấn cao (trong tuần/tháng/năm)
+
+
++ chỉnh lại mail thành => no-reply-elister-health-care@gmail.com 
++ chỉnh nội dung mail lại 
+
++ [QUAN TRỌNG]
++ Chuyển lịch 1 tuần thành 4 tuần (1 tháng)
+    => Thay vì lấy tuần hiện tại thì => lấy thêm 3 tuần sau nữa 
+    => deploy thì api lâu thôi , chứ local thì 4 tuần nó cũng như 1 tuần , vẫn còn nhanh . 
+    => làm tương tự 1 tuần thôi . cũng check lịch làm việc rồi các thứ ,... 
+

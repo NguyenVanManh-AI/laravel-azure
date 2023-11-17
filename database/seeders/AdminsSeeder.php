@@ -24,7 +24,7 @@ class AdminsSeeder extends Seeder
 
         $admins = [
             [
-                'email' => 'vanmanh.dut@gmail.com',
+                'email' => 'vanmanh.dut@yopmail.com',
                 'name' => 'Nguyễn Văn Mạnh',
                 'date_of_birth' => '2001-08-29',
                 'address' => 'Phú Đa - Phú Vang - Thừa Thiên Huế',
@@ -90,14 +90,14 @@ class AdminsSeeder extends Seeder
 
         ];
 
+        $pathFolder = 'storage/app/public/image/avatars/admins/';
+        if (!File::exists($pathFolder)) {
+            File::makeDirectory($pathFolder, 0755, true);
+        }
         foreach ($admins as $index => $admin) {
             try {
-                $pathFolder = 'storage/app/public/image/avatars/admins/';
-                if (!File::exists($pathFolder)) {
-                    File::makeDirectory($pathFolder, 0755, true);
-                }
-                $client = new Client;
                 while (true) {
+                    $client = new Client;
                     $response = $client->get('https://picsum.photos/200/200');
                     $imageContent = $response->getBody()->getContents();
                     $nameImage = uniqid() . '.jpg';

@@ -32,6 +32,7 @@ class RequestCreateHospitalService extends FormRequest
             'price' => 'required|numeric',
             // 'infor' => 'required|array',
             'infor' => 'required',
+            'thumbnail_service' => 'required|image',
         ];
     }
 

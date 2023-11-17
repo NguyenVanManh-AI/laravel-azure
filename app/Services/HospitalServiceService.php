@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Http\Requests\RequestCreateHospitalService;
 use App\Http\Requests\RequestStatusService;
 use App\Http\Requests\RequestUpdateHospitalService;
+use App\Models\HospitalService;
 use App\Models\Rating;
 use App\Models\WorkSchedule;
 use App\Repositories\HospitalDepartmentRepository;
@@ -13,6 +14,7 @@ use App\Repositories\InforDoctorRepository;
 use App\Repositories\RatingRepository;
 use App\Repositories\UserRepository;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\File;
 use Throwable;
 
 class HospitalServiceService
@@ -41,6 +43,17 @@ class HospitalServiceService
         ], $status);
     }
 
+    public function saveThumbnail(Request $request)
+    {
+        if ($request->hasFile('thumbnail_service')) {
+            $image = $request->file('thumbnail_service');
+            $filename = pathinfo($image->getClientOriginalName(), PATHINFO_FILENAME) . '_service_' . time() . '.' . $image->getClientOriginalExtension();
+            $image->storeAs('public/image/thumbnail/services/', $filename);
+
+            return 'storage/image/thumbnail/services/' . $filename;
+        }
+    }
+
     public function add(RequestCreateHospitalService $request)
     {
         try {
@@ -57,11 +70,16 @@ class HospitalServiceService
 
             // lúc lưu vào thì id_hospital_department của bảng sẽ là id của bảng ghi trong bảng hospital_department (chứ không phải là id_department)
             // vì chỉ cần lấy ra được id của hospital_department là lấy ra được nó của bệnh viện nào và khoa gì
-            $request->merge([
-                'infor' => json_encode($request->infor),
-                'is_delete' => 0,
-            ]);
-            $hospitalService = $this->hospitalService->createHospitalService($request->all());
+            $thumbnail_service = $this->saveThumbnail($request);
+            $data = array_merge(
+                $request->all(),
+                [
+                    'infor' => json_encode($request->infor),
+                    'is_delete' => 0,
+                    'thumbnail_service' => $thumbnail_service,
+                ]
+            );
+            $hospitalService = $this->hospitalService->createHospitalService($data);
             $hospitalService->infor = json_decode($hospitalService->infor);
 
             return $this->responseOK(201, $hospitalService, 'Thêm dịch vụ cho bệnh viện thành công ! ');
@@ -87,8 +105,30 @@ class HospitalServiceService
             if (empty($hospitalDepartment)) {
                 return $this->responseError(400, 'Không tìm thấy khoa trong bệnh viện !');
             }
-            $request->merge(['infor' => json_encode($request->infor)]);
-            $hospitalService = $this->hospitalService->updateHospitalService($hospitalService, $request->all());
+
+            if ($request->hasFile('thumbnail_service')) {
+                if ($hospitalService->thumbnail_service) {
+                    File::delete($hospitalService->thumbnail_service);
+                }
+                $thumbnail_service = $this->saveThumbnail($request);
+                $data = array_merge(
+                    $request->all(),
+                    [
+                        'thumbnail_service' => $thumbnail_service,
+                        'infor' => json_encode($request->infor),
+                    ]
+                );
+                $hospitalService = $this->hospitalService->updateHospitalService($hospitalService, $data);
+            } else {
+                $data = array_merge(
+                    $request->all(),
+                    [
+                        'thumbnail_service' => $hospitalService->thumbnail_service,
+                        'infor' => json_encode($request->infor),
+                    ]
+                );
+                $hospitalService = $this->hospitalService->updateHospitalService($hospitalService, $data);
+            }
             $hospitalService->infor = json_decode($hospitalService->infor);
 
             return $this->responseOK(200, $hospitalService, 'Cập nhật dịch vụ thành công !');
@@ -142,6 +182,10 @@ class HospitalServiceService
 
                 case 'new':
                     $orderBy = 'id_hospital_service';
+                    break;
+
+                case 'search_number':
+                    $orderBy = 'hospital_services.search_number_service';
                     break;
 
                 default:
@@ -452,6 +496,12 @@ class HospitalServiceService
                     $hospitalServices->cout_rating = $cout_rating;
                     $hospitalServices->number_rating = ($cout_rating != 0) ? round($sum_rating / $cout_rating, 1) : 0;
                 }
+
+                // tăng tìm kiếm cho service
+                $hospitalServices->search_number_service += 1;
+                $hospital_service = HospitalService::find($id);
+                $hospital_service->update(['search_number_service' => $hospital_service->search_number_service + 1]);
+                // tăng tìm kiếm cho service
 
                 return $this->responseOK(200, $hospitalServices, 'Xem dịch vụ chi tiết thành công !');
             } else {

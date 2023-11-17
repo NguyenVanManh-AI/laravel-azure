@@ -20,7 +20,9 @@ return new class extends Migration
             $table->integer('time_advise');
             $table->double('price', 15, 2);
             $table->json('infor');
+            $table->integer('search_number_service')->default(0);
             $table->boolean('is_delete');
+            $table->string('thumbnail_service')->nullable();
             $table->timestamps();
 
             $table->foreign('id_hospital_department')->references('id')->on('hospital_departments')->onDelete('cascade');

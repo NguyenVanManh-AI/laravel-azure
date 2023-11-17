@@ -79,7 +79,8 @@ class CategoryRepository extends BaseRepository implements CategoryInterface
     {
         $filter = (object) $filter;
         $data = (new self)->model->orderBy($filter->orderBy, $filter->orderDirection)
-            ->where('name', 'LIKE', '%' . $filter->search . '%');
+            ->where('name', 'LIKE', '%' . $filter->search . '%')
+            ->orWhere('description_category', 'LIKE', '%' . $filter->search . '%');
 
         return $data;
     }

@@ -132,14 +132,14 @@ class ArticlesSeeder extends Seeder
 
             $ids = array_merge($ids, [null]); // thêm giá trị null (admin)
 
+            $pathFolder = 'storage/app/public/image/thumbnail/articles/';
+            if (!File::exists($pathFolder)) {
+                File::makeDirectory($pathFolder, 0755, true);
+            }
             foreach ($articles as $index => $article) {
                 try {
-                    $pathFolder = 'storage/app/public/image/thumbnail/articles/';
-                    if (!File::exists($pathFolder)) {
-                        File::makeDirectory($pathFolder, 0755, true);
-                    }
-                    $client = new Client;
                     while (true) {
+                        $client = new Client;
                         $response = $client->get('https://picsum.photos/200/200');
                         $imageContent = $response->getBody()->getContents();
                         $nameImage = uniqid() . '.jpg';

@@ -21,6 +21,7 @@ return new class extends Migration
             $table->longText('description')->nullable();
             $table->json('location')->nullable();
             $table->integer('search_number')->default(0);
+            $table->string('cover_hospital')->nullable();
             $table->timestamps();
 
             $table->foreign('id_hospital')->references('id')->on('users')->onDelete('cascade');

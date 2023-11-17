@@ -547,14 +547,14 @@ class DepartmentsSeeder extends Seeder
         // }
 
         // Cách 2
+        $pathFolder = 'storage/app/public/image/thumbnail/departments/';
+        if (!File::exists($pathFolder)) {
+            File::makeDirectory($pathFolder, 0755, true);
+        }
         foreach ($departments as $index => $department) {
             try {
-                $pathFolder = 'storage/app/public/image/thumbnail/departments/';
-                if (!File::exists($pathFolder)) {
-                    File::makeDirectory($pathFolder, 0755, true);
-                }
-                $client = new Client;
                 while (true) {
+                    $client = new Client;
                     $response = $client->get('https://picsum.photos/200/200');
                     $imageContent = $response->getBody()->getContents();
                     $nameImage = uniqid() . '.jpg';
@@ -564,6 +564,7 @@ class DepartmentsSeeder extends Seeder
                             'name' => $department['name'],
                             'description' => $department['description'],
                             'thumbnail' => 'storage/image/thumbnail/departments/' . $nameImage,
+                            'search_number' => random_int(0, 300),
                             'created_at' => now(),
                             'updated_at' => now(),
                         ]);

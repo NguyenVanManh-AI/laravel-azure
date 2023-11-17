@@ -31,6 +31,7 @@ class RequestUpdateHospitalService extends FormRequest
             'time_advise' => 'integer|max:240',
             'price' => 'numeric',
             // 'infor' => 'array',
+            'thumbnail_service' => 'image',
         ];
     }
 

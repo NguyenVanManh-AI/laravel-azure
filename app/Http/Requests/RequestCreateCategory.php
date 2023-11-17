@@ -28,6 +28,7 @@ class RequestCreateCategory extends FormRequest
         return [
             'name' => 'required|string|unique:categories',
             'thumbnail' => 'required|image',
+            'description_category' => 'required|string',
         ];
     }
 

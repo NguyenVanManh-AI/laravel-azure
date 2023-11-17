@@ -88,12 +88,23 @@ class WorkScheduleRepository extends BaseRepository implements WorkScheduleInter
             hospital_services.time_advise AS service_time_advise,
             hospital_services.price as service_price , 
             hospital_services.infor as service_infor ,
+            hospital_services.thumbnail_service as thumbnail_service ,
+            hospital_services.search_number_service as search_number_service ,
 
             work_schedules.id AS work_schedule_id ,
             work_schedules.price AS work_schedule_price , work_schedules.time AS work_schedule_time , 
-            work_schedules.content AS work_schedule_content , work_schedules.created_at AS work_schedule_created_at ,
+            work_schedules.content AS work_schedule_content , 
+            work_schedules.name_patient AS name_patient , 
+            work_schedules.date_of_birth_patient AS date_of_birth_patient , 
+            work_schedules.gender_patient AS gender_patient , 
+            work_schedules.email_patient AS email_patient , 
+            work_schedules.phone_patient AS phone_patient , 
+            work_schedules.address_patient AS address_patient , 
+            work_schedules.health_condition AS health_condition , 
+            work_schedules.is_confirm AS work_schedule_is_confirm , 
+            work_schedules.created_at AS work_schedule_created_at ,
             work_schedules.updated_at AS work_schedule_updated_at,
-            
+
             users_user.id AS user_id, 
             users_user.name AS user_name, 
             users_user.address AS user_address, 
@@ -117,6 +128,7 @@ class WorkScheduleRepository extends BaseRepository implements WorkScheduleInter
             COALESCE(users_hospital.phone, uh_service.phone) AS hospital_phone ,
             COALESCE(infor_hospitals.infrastructure, ih_service.infrastructure) AS hospital_infrastructure ,
             COALESCE(infor_hospitals.description, ih_service.description) AS hospital_description ,
+            COALESCE(infor_hospitals.cover_hospital, ih_service.cover_hospital) AS cover_hospital ,
 
             COALESCE(departments.id, hd_department.id) AS department_id ,
             COALESCE(departments.name, hd_department.name) AS department_name ,
@@ -126,8 +138,10 @@ class WorkScheduleRepository extends BaseRepository implements WorkScheduleInter
             COALESCE(hospital_departments.time_advise, hd_service.time_advise) AS department_time_advise
 
         ');
-        $query->join('infor_users', 'infor_users.id_user', '=', 'work_schedules.id_user')
-            ->join('users AS users_user', 'users_user.id', '=', 'infor_users.id_user');
+
+        // update leftJoin vì người dùng đặt ẩn danh
+        $query->leftJoin('infor_users', 'infor_users.id_user', '=', 'work_schedules.id_user')
+            ->leftJoin('users AS users_user', 'users_user.id', '=', 'infor_users.id_user');
 
         $query->leftJoin('infor_doctors', 'infor_doctors.id_doctor', '=', 'work_schedules.id_doctor');
         $query->leftJoin('hospital_services', 'hospital_services.id', '=', 'work_schedules.id_service');
@@ -155,6 +169,15 @@ class WorkScheduleRepository extends BaseRepository implements WorkScheduleInter
             $query->where('users_user.id', '=', $filter->user_id);
         });
 
+        $query->when(isset($filter->is_confirm), function ($query) use ($filter) {
+            $query->where(function ($query) use ($filter) {
+                if ($filter->is_confirm === 'both') {
+                } else {
+                    $query->where('work_schedules.is_confirm', $filter->is_confirm);
+                }
+            });
+        });
+
         if ($filter->role == 'user') {
             $query->where(function ($query) use ($filter) { // bỏ vào function mới được
                 // nếu không bỏ vào function thì user vừa search vừa is_service thì lại không được
@@ -167,7 +190,12 @@ class WorkScheduleRepository extends BaseRepository implements WorkScheduleInter
                     ->orWhere('departments.name', 'LIKE', '%' . $filter->search . '%')
                     ->orWhere('departments.description', 'LIKE', '%' . $filter->search . '%')
                     ->orWhere('hospital_services.name', 'LIKE', '%' . $filter->search . '%')
-                    ->orWhere('work_schedules.content', 'LIKE', '%' . $filter->search . '%');
+                    ->orWhere('work_schedules.content', 'LIKE', '%' . $filter->search . '%')
+
+                    ->orWhere('work_schedules.name_patient', 'LIKE', '%' . $filter->search . '%')
+                    ->orWhere('work_schedules.email_patient', 'LIKE', '%' . $filter->search . '%')
+                    ->orWhere('work_schedules.phone_patient', 'LIKE', '%' . $filter->search . '%')
+                    ->orWhere('work_schedules.address_patient', 'LIKE', '%' . $filter->search . '%');
             });
         }
 
@@ -190,7 +218,12 @@ class WorkScheduleRepository extends BaseRepository implements WorkScheduleInter
                                     ->orWhere('users_user.email', 'LIKE', '%' . $filter->search . '%')
                                     ->orWhere('users_user.phone', 'LIKE', '%' . $filter->search . '%')
                                     ->orWhere('hospital_services.name', 'LIKE', '%' . $filter->search . '%')
-                                    ->orWhere('work_schedules.content', 'LIKE', '%' . $filter->search . '%');
+                                    ->orWhere('work_schedules.content', 'LIKE', '%' . $filter->search . '%')
+
+                                    ->orWhere('work_schedules.name_patient', 'LIKE', '%' . $filter->search . '%')
+                                    ->orWhere('work_schedules.email_patient', 'LIKE', '%' . $filter->search . '%')
+                                    ->orWhere('work_schedules.phone_patient', 'LIKE', '%' . $filter->search . '%')
+                                    ->orWhere('work_schedules.address_patient', 'LIKE', '%' . $filter->search . '%');
                             }
                         });
                     });
@@ -250,6 +283,55 @@ class WorkScheduleRepository extends BaseRepository implements WorkScheduleInter
                         $query->where('time->date', '=', $day)->where('time->interval[0]', '>=', $hour);
                     });
             }
+        });
+        $query->when(isset($filter->doctor_id), function ($query) use ($filter) {
+            $query->where(function ($query) use ($filter) {
+                $query->where('work_schedules.id_doctor', $filter->doctor_id);
+            });
+        });
+        $query->when(isset($filter->user_id), function ($query) use ($filter) {
+            $query->where(function ($query) use ($filter) {
+                $query->where('work_schedules.id_user', $filter->user_id);
+            });
+        });
+        $query->when(!empty($filter->hospital_id), function ($query) use ($filter) {
+            $query->where(function ($query) use ($filter) {
+                $query->where(function ($query) use ($filter) { // bỏ query vào hàm rất quan trọng , không có nó sẽ khác
+                    $query->where('users_hospital.id', $filter->hospital_id)
+                        ->orWhere('uh_service.id', $filter->hospital_id);
+                });
+
+                if (!empty($filter->doctor_id)) {
+                    $query->where('users_doctor.id', $filter->doctor_id);
+                }
+                $query->when(!empty($filter->search), function ($query) use ($filter) {
+                    $query->where(function ($query) use ($filter) {
+                        $query->where(function ($query) use ($filter) {
+                            if ($filter->role != 'user') {
+                                $query->where('users_user.name', 'LIKE', '%' . $filter->search . '%')
+                                    ->orWhere('users_user.address', 'LIKE', '%' . $filter->search . '%')
+                                    ->orWhere('users_user.email', 'LIKE', '%' . $filter->search . '%')
+                                    ->orWhere('users_user.phone', 'LIKE', '%' . $filter->search . '%')
+                                    ->orWhere('hospital_services.name', 'LIKE', '%' . $filter->search . '%')
+                                    ->orWhere('work_schedules.content', 'LIKE', '%' . $filter->search . '%')
+
+                                    ->orWhere('work_schedules.name_patient', 'LIKE', '%' . $filter->search . '%')
+                                    ->orWhere('work_schedules.email_patient', 'LIKE', '%' . $filter->search . '%')
+                                    ->orWhere('work_schedules.phone_patient', 'LIKE', '%' . $filter->search . '%')
+                                    ->orWhere('work_schedules.address_patient', 'LIKE', '%' . $filter->search . '%');
+                            }
+                        });
+                    });
+                });
+            });
+        });
+        $query->when(isset($filter->is_confirm), function ($query) use ($filter) {
+            $query->where(function ($query) use ($filter) {
+                if ($filter->is_confirm === 'both') {
+                } else {
+                    $query->where('work_schedules.is_confirm', $filter->is_confirm);
+                }
+            });
         });
 
         return $query;

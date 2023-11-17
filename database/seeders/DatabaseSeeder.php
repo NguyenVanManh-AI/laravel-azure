@@ -20,12 +20,14 @@ class DatabaseSeeder extends Seeder
             ProvincesSeeder::class,
             UsersSeeder::class,
             HospitalDepartmentsSeeder::class,
-            HospitalServicesSeeder::class,
             HealthInsurancesSeeder::class,
             HealthInsuranceHospitalsSeeder::class,
             DoctorsSeeder::class,
             InforExtendDoctorsSeeder::class,
             ArticlesSeeder::class,
+            HospitalServicesSeeder::class,
+            WorkSchedulesSeeder::class,
+            RatingsSeeder::class,
         ]);
     }
 }

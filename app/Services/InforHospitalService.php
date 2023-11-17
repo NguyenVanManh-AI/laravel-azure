@@ -72,6 +72,17 @@ class InforHospitalService
         }
     }
 
+    public function saveCover(Request $request)
+    {
+        if ($request->hasFile('cover_hospital')) {
+            $image = $request->file('cover_hospital');
+            $filename = pathinfo($image->getClientOriginalName(), PATHINFO_FILENAME) . '_hospital_' . time() . '.' . $image->getClientOriginalExtension();
+            $image->storeAs('public/image/covers/hospitals/', $filename);
+
+            return 'storage/image/covers/hospitals/' . $filename;
+        }
+    }
+
     public function register(RequestCreateInforHospital $request)
     {
         try {
@@ -89,6 +100,9 @@ class InforHospitalService
                     ['password' => Hash::make($request->password), 'is_accept' => 0, 'role' => 'hospital', 'avatar' => $avatar]
                 );
                 $user = UserRepository::createUser($data);
+
+                // infor
+                $cover_hospital = $this->saveCover($request);
                 $request->merge([
                     'infrastructure' => json_encode($request->infrastructure),
                     'location' => json_encode($request->location),
@@ -96,7 +110,7 @@ class InforHospitalService
 
                 $data = array_merge(
                     $request->all(),
-                    ['id_hospital' => $user->id]
+                    ['id_hospital' => $user->id, 'cover_hospital' => $cover_hospital]
                 );
 
                 $inforUser = InforHospitalRepository::createHospital($data);
@@ -243,7 +257,17 @@ class InforHospitalService
             }
 
             $inforHospital = InforHospitalRepository::getInforHospital(['id_hospital' => $user->id])->first();
-            $inforHospital = InforHospitalRepository::updateInforHospital($inforHospital->id, $request->all());
+            if ($request->hasFile('cover_hospital')) {
+                if ($inforHospital->cover_hospital) {
+                    File::delete($inforHospital->cover_hospital);
+                }
+                $cover_hospital = $this->saveCover($request);
+                $data = array_merge($request->all(), ['cover_hospital' => $cover_hospital]);
+                $inforHospital = InforHospitalRepository::updateInforHospital($inforHospital->id, $data);
+            } else {
+                $request['cover_hospital'] = $inforHospital->cover_hospital;
+                $inforHospital = InforHospitalRepository::updateInforHospital($inforHospital->id, $request->all());
+            }
             $message = 'Hospital successfully updated';
 
             // sendmail verify

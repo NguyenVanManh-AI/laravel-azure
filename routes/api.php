@@ -233,9 +233,6 @@ Route::prefix('time-work')->controller(TimeWorkController::class)->group(functio
 // WorkSchedule
 Route::prefix('work-schedule')->controller(WorkScheduleController::class)->group(function () {
     Route::middleware(['auth:user_api', 'role:user'])->group(function () {
-        Route::post('add-advise', 'addAdvise');
-        Route::post('add-service', 'addService');
-
         Route::get('/user', 'userWorkSchedule');
         Route::delete('/user-cancel/{id}', 'userCancel');
         Route::delete('/user-cancel-many', 'userCancelMany');
@@ -247,11 +244,15 @@ Route::prefix('work-schedule')->controller(WorkScheduleController::class)->group
         Route::post('/specify-doctor', 'specifyDoctor');
         Route::delete('/hospital-cancel/{id}', 'hospitalCancel');
         Route::delete('/hospital-cancel-many', 'hospitalCancelMany');
+        Route::post('/change-confirm/{id}', 'changeConfirm');
     });
 
     Route::middleware(['auth:user_api', 'role:doctor'])->group(function () {
         Route::get('/doctor', 'doctorWorkSchedule');
     });
+
+    Route::post('add-advise', 'addAdvise');
+    Route::post('add-service', 'addService');
 });
 
 Route::prefix('public')->controller(PublicController::class)->group(function () {

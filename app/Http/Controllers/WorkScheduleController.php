@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\RequestConfirmWorkSchedule;
 use App\Http\Requests\RequestCreateWorkScheduleAdvise;
 use App\Http\Requests\RequestCreateWorkScheduleService;
 use App\Services\WorkScheduleService;
@@ -59,6 +60,11 @@ class WorkScheduleController extends Controller
     public function hospitalCancel(Request $request, $id_work_schedule)
     {
         return $this->workScheduleService->hospitalCancel($request, $id_work_schedule);
+    }
+
+    public function changeConfirm(RequestConfirmWorkSchedule $request, $id_work_schedule)
+    {
+        return $this->workScheduleService->changeConfirm($request, $id_work_schedule);
     }
 
     public function userCancelMany(Request $request)

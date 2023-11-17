@@ -2,12 +2,15 @@
 
 namespace App\Services;
 
+use App\Http\Requests\RequestConfirmWorkSchedule;
 use App\Http\Requests\RequestCreateWorkScheduleAdvise;
 use App\Http\Requests\RequestCreateWorkScheduleService;
+use App\Jobs\SendMailDefault;
 use App\Jobs\SendMailNotify;
 use App\Models\InforDoctor;
 use App\Models\Rating;
 use App\Models\User;
+use App\Models\WorkSchedule;
 use App\Repositories\HospitalServiceRepository;
 use App\Repositories\UserRepository;
 use App\Repositories\WorkScheduleInterface;
@@ -47,7 +50,11 @@ class WorkScheduleService
     public function addAdvise(RequestCreateWorkScheduleAdvise $request)
     {
         try {
-            $user = Auth::user();
+            $user = null;
+            if ($request->hasHeader('Authorization')) {
+                $user = Auth::guard('user_api')->user();
+            }
+
             $doctor = UserRepository::doctorOfHospital(['id_doctor' => $request->id_doctor])->first();
             if (empty($doctor)) {
                 return $this->responseError(400, 'Không tìm thấy bác sĩ !');
@@ -69,22 +76,52 @@ class WorkScheduleService
             $endTime = $time->interval[1];
             $date = $time->date;
 
-            $content = "Bạn có lịch tư vấn với bác sĩ $doctor->name_doctor thuộc chuyên khoa " .
-            " $doctor->name_department của bệnh viện $hospital->name vào khoản thời gian từ lúc $startTime cho đến " .
-            " $endTime của ngày $date tại địa chỉ $hospital->address.  SĐT Liên hệ bệnh viện : $hospital->phone .";
+            $infors = (object) [
+                'messsge' => false,
+                'name_patient' => $request->name_patient,
+                'email_patient' => $request->email_patient,
+                'gender_patient' => $request->gender_patient,
+                'phone_patient' => $request->phone_patient,
+                'address_patient' => $request->address_patient,
+                'health_condition' => $request->health_condition,
+                'date_of_birth_patient' => $request->date_of_birth_patient,
+                'name_doctor' => $doctor->name,
+                'email_doctor' => $doctor->email,
+                'phone_doctor' => $doctor->phone,
+                'name_department' => $doctor->name_department,
+                'name_hospital' => $hospital->name,
+                'phone_hospital' => $hospital->phone,
+                'address_hospital' => $hospital->address,
+                'price' => $doctor->price,
+                'time' => $time,
+            ];
+
+            $content = view('emails.book_advise', compact(['infors', 'user']))->render();
 
             $data = [
-                'id_user' => $user->id,
+                'id_user' => $user->id ?? null,
                 'id_doctor' => $request->id_doctor,
                 'id_service' => null,
                 'price' => $doctor->price,
                 'time' => json_encode($time),
                 'content' => $content,
+                'name_patient' => $request->name_patient,
+                'email_patient' => $request->email_patient,
+                'gender_patient' => $request->gender_patient,
+                'phone_patient' => $request->phone_patient,
+                'address_patient' => $request->address_patient,
+                'health_condition' => $request->health_condition,
+                'date_of_birth_patient' => $request->date_of_birth_patient,
             ];
             $workSchedule = WorkScheduleRepository::createWorkSchedule($data);
             $workSchedule->time = json_decode($workSchedule->time);
 
-            Queue::push(new SendMailNotify($user->email, $content));
+            $infors->messsge = true;
+            $content = view('emails.book_advise', compact(['infors', 'user']))->render();
+            if ($user) {
+                Queue::push(new SendMailNotify($user->email, $content));
+            }
+            Queue::push(new SendMailNotify($request->email_patient, $content));
 
             return $this->responseOK(201, $workSchedule, 'Đặt lịch tư vấn thành công !');
         } catch (Throwable $e) {
@@ -119,28 +156,60 @@ class WorkScheduleService
             }
 
             $hospital = UserRepository::findUserById($hospitalServices->id_hospital);
-            $user = Auth::user();
-            $time = $request->time;
-            $startTime = $time['interval'][0];
-            $endTime = $time['interval'][1];
-            $date = $time['date'];
 
-            $content = "Bạn có lịch dịch vụ $hospitalServices->name thuộc chuyên khoa $hospitalServices->name_department của bệnh viện $hospital->name "
-            . "vào khoản thời gian từ lúc $startTime cho đến " .
-            " $endTime của ngày $date tại địa chỉ $hospital->address.  SĐT Liên hệ bệnh viện : $hospital->phone .";
+            $user = null;
+            if ($request->hasHeader('Authorization')) {
+                $user = Auth::guard('user_api')->user();
+            }
+
+            $time = (object) $request->time;
+            $startTime = $time->interval[0];
+            $endTime = $time->interval[1];
+            $date = $time->date;
+
+            $infors = (object) [
+                'messsge' => false,
+                'name_patient' => $request->name_patient,
+                'email_patient' => $request->email_patient,
+                'gender_patient' => $request->gender_patient,
+                'phone_patient' => $request->phone_patient,
+                'address_patient' => $request->address_patient,
+                'health_condition' => $request->health_condition,
+                'date_of_birth_patient' => $request->date_of_birth_patient,
+                'name_service' => $hospitalServices->name,
+                'price' => $hospitalServices->price,
+                'name_department' => $hospitalServices->name_department,
+                'name_hospital' => $hospital->name,
+                'phone_hospital' => $hospital->phone,
+                'address_hospital' => $hospital->address,
+                'time' => $time,
+            ];
+            $content = view('emails.book_service', compact(['infors', 'user']))->render();
 
             $data = [
-                'id_user' => $user->id,
+                'id_user' => $user->id ?? null,
                 'id_doctor' => null,
                 'id_service' => $request->id_hospital_service,
                 'price' => $hospitalServices->price_hospital_service,
                 'time' => json_encode($time),
                 'content' => $content,
+                'name_patient' => $request->name_patient,
+                'email_patient' => $request->email_patient,
+                'gender_patient' => $request->gender_patient,
+                'phone_patient' => $request->phone_patient,
+                'address_patient' => $request->address_patient,
+                'health_condition' => $request->health_condition,
+                'date_of_birth_patient' => $request->date_of_birth_patient,
             ];
             $workSchedule = WorkScheduleRepository::createWorkSchedule($data);
             $workSchedule->time = json_decode($workSchedule->time);
 
-            Queue::push(new SendMailNotify($user->email, $content));
+            $infors->messsge = true;
+            $content = view('emails.book_service', compact(['infors', 'user']))->render();
+            if ($user) {
+                Queue::push(new SendMailNotify($user->email, $content));
+            }
+            Queue::push(new SendMailNotify($request->email_patient, $content));
 
             return $this->responseOK(201, $workSchedule, 'Đặt lịch dịch vụ thành công !');
         } catch (Throwable $e) {
@@ -164,40 +233,40 @@ class WorkScheduleService
                 return $this->responseError(400, 'Không tìm thấy dịch vụ !');
             }
 
-            if ($workSchedule->doctor_id != null) {
-                return $this->responseError(400, 'Dịch vụ này đã có bác sĩ thực hiện !');
-            } else {
-                $time = json_decode($workSchedule->work_schedule_time);
-                $filter = (object) [
-                    'search' => '',
-                    'role' => 'doctor',
-                    'is_accept' => 1,
-                    'is_confirm' => 1,
-                    'id_department' => $workSchedule->department_id,
-                    'id_hospital' => $hospital->id,
-                ];
-                $id_doctors = UserRepository::doctorOfHospital($filter)->get()->pluck('id_doctor')->toArray();
+            // if ($workSchedule->doctor_id != null) {
+            //     return $this->responseError(400, 'Dịch vụ này đã có bác sĩ thực hiện !');
+            // } else {
+            $time = json_decode($workSchedule->work_schedule_time);
+            $filter = (object) [
+                'search' => '',
+                'role' => 'doctor',
+                'is_accept' => 1,
+                'is_confirm' => 1,
+                'id_department' => $workSchedule->department_id,
+                'id_hospital' => $hospital->id,
+            ];
+            $id_doctors = UserRepository::doctorOfHospital($filter)->get()->pluck('id_doctor')->toArray();
 
-                $filter = (object) [
-                    'id_doctors' => $id_doctors,
-                    'time' => $time,
-                ];
-                $busy_doctors = array_unique($this->workScheduleRepository->getWorkSchedule($filter)->get()->pluck('id_doctor')->toArray());
+            $filter = (object) [
+                'id_doctors' => $id_doctors,
+                'time' => $time,
+            ];
+            $busy_doctors = array_unique($this->workScheduleRepository->getWorkSchedule($filter)->get()->pluck('id_doctor')->toArray());
 
-                $free_time_doctors = array_diff($id_doctors, $busy_doctors);
-                if (empty($free_time_doctors)) {
-                    return $this->responseOK(200, null, 'Tất cả các bác sĩ đều bận trong khung giờ này !');
-                }
-
-                $listDoctors = User::whereIn('id', $free_time_doctors)->get();
-                foreach ($listDoctors as $doctor) {
-                    $doctor->id_doctor = $doctor->id;
-                }
-                $start = $time->interval[0];
-                $end = $time->interval[1];
-
-                return $this->responseOK(200, $listDoctors, "Lấy danh sách bác sĩ rảnh trong khung giờ $start đến $end ngày $time->date thành công !");
+            $free_time_doctors = array_diff($id_doctors, $busy_doctors);
+            if (empty($free_time_doctors)) {
+                return $this->responseOK(200, null, 'Tất cả các bác sĩ đều bận trong khung giờ này !');
             }
+
+            $listDoctors = User::whereIn('id', $free_time_doctors)->get();
+            foreach ($listDoctors as $doctor) {
+                $doctor->id_doctor = $doctor->id;
+            }
+            $start = $time->interval[0];
+            $end = $time->interval[1];
+
+            return $this->responseOK(200, $listDoctors, "Lấy danh sách bác sĩ rảnh trong khung giờ $start đến $end ngày $time->date thành công !");
+            // }
         } catch (Throwable $e) {
             return $this->responseError(400, $e->getMessage());
         }
@@ -221,9 +290,9 @@ class WorkScheduleService
                 return $this->responseError(400, 'Không tìm thấy lịch tư vấn hay dịch vụ !');
             }
 
-            if ($workSchedule->doctor_id != null) {
-                return $this->responseError(400, 'Dịch vụ này đã có bác sĩ thực hiện !');
-            }
+            // if ($workSchedule->doctor_id != null) {
+            //     return $this->responseError(400, 'Dịch vụ này đã có bác sĩ thực hiện !');
+            // }
 
             $doctor = InforDoctor::where('id_doctor', $id_doctor)->first();
             if (empty($doctor)) {
@@ -239,11 +308,11 @@ class WorkScheduleService
             }
 
             $time = json_decode($workSchedule->work_schedule_time);
-            $filter = (object) [
+            $filter2 = (object) [
                 'id_doctors' => [$id_doctor],
                 'time' => $time,
             ];
-            $busy = $this->workScheduleRepository->getWorkSchedule($filter)->count();
+            $busy = $this->workScheduleRepository->getWorkSchedule($filter2)->count();
             if ($busy > 0) {
                 return $this->responseError(400, 'Bác sĩ bận tại khung giờ này !');
             }
@@ -251,6 +320,7 @@ class WorkScheduleService
             $workSchedule->update([
                 'id_doctor' => $id_doctor,
             ]);
+            $workSchedule = $this->workScheduleRepository->searchWorkSchedule($filter)->first();
 
             return $this->responseOK(200, $workSchedule, 'Chỉ định bác sĩ thành công !');
         } catch (Throwable $e) {
@@ -309,6 +379,7 @@ class WorkScheduleService
                 'orderDirection' => $orderDirection,
                 'status' => $request->status ?? '',
                 'role' => 'hospital',
+                'is_confirm' => $request->is_confirm ?? 'both',
             ];
 
             if (!(empty($request->paginate))) {
@@ -380,6 +451,7 @@ class WorkScheduleService
                 'orderDirection' => $orderDirection,
                 'status' => $request->status ?? '',
                 'role' => 'doctor',
+                'is_confirm' => $request->is_confirm ?? 'both',
             ];
 
             if (!(empty($request->paginate))) {
@@ -449,6 +521,7 @@ class WorkScheduleService
                 'orderDirection' => $orderDirection,
                 'status' => $request->status ?? '',
                 'role' => 'user',
+                'is_confirm' => $request->is_confirm ?? 'both',
             ];
 
             if (!(empty($request->paginate))) {
@@ -493,20 +566,21 @@ class WorkScheduleService
             $workSchedule = $this->workScheduleRepository->searchWorkSchedule($filter)->first();
 
             // gửi mail đến bác sĩ , bệnh viện , người dùng
-            $workSchedule->work_schedule_time = json_decode($workSchedule->work_schedule_time);
-            $startTime = $workSchedule->work_schedule_time->interval[0];
-            $endTime = $workSchedule->work_schedule_time->interval[1];
-            $day = $workSchedule->work_schedule_time->date;
-
-            $contentHospital = "Lịch làm việc giữa bác sĩ $workSchedule->doctor_name và khách hàng $workSchedule->user_name trong khoảng thời gian từ $startTime đến $endTime vào ngày $day đã bị bởi người dùng !";
-            $contentUser = "Lịch làm việc giữa bạn và bác sĩ $workSchedule->doctor_name thuộc bệnh viện $workSchedule->hospital_name trong khoảng thời gian từ $startTime đến $endTime vào ngày $day đã được hủy thành công !";
-
-            if ($workSchedule->doctor_email) {
-                $contentDoctor = "Lịch làm việc giữa bạn và $workSchedule->user_name trong khoảng thời gian từ $startTime đến $endTime vào ngày $day đã bị bởi người dùng !";
-                Queue::push(new SendMailNotify($workSchedule->doctor_email, $contentDoctor));
+            $content = $workSchedule->work_schedule_content;
+            $thongbao = 'Lịch có thông tin chi tiết như sau đã được hủy thành công !';
+            if ($workSchedule->email_patient) {
+                Queue::push(new SendMailDefault($workSchedule->email_patient, $thongbao, $content));
             }
-            Queue::push(new SendMailNotify($workSchedule->hospital_email, $contentHospital));
-            Queue::push(new SendMailNotify($workSchedule->user_email, $contentUser));
+            if ($workSchedule->user_email) {
+                Queue::push(new SendMailDefault($workSchedule->user_email, $thongbao, $content));
+            }
+            $thongbao = 'Lịch có thông tin chi tiết như sau đã được hủy bởi người dùng !';
+            if ($workSchedule->doctor_email) {
+                Queue::push(new SendMailDefault($workSchedule->doctor_email, $thongbao, $content));
+            }
+            if ($workSchedule->hospital_email) {
+                Queue::push(new SendMailDefault($workSchedule->hospital_email, $thongbao, $content));
+            }
 
             $workSchedule->delete();
             Rating::where('id_work_schedule', $id_work_schedule)->delete(); // xóa lịch => xóa rating tương ứng
@@ -533,25 +607,70 @@ class WorkScheduleService
             }
 
             // gửi mail đến bác sĩ , bệnh viện , người dùng
-            $workSchedule->work_schedule_time = json_decode($workSchedule->work_schedule_time);
-            $startTime = $workSchedule->work_schedule_time->interval[0];
-            $endTime = $workSchedule->work_schedule_time->interval[1];
-            $day = $workSchedule->work_schedule_time->date;
-
-            $contentHospital = "Lịch làm việc giữa bác sĩ $workSchedule->doctor_name và khách hàng $workSchedule->user_name trong khoảng thời gian từ $startTime đến $endTime vào ngày $day đã được hủy thành công !";
-            $contentUser = "Lịch làm việc giữa bạn và bác sĩ $workSchedule->doctor_name thuộc bệnh viện $workSchedule->hospital_name trong khoảng thời gian từ $startTime đến $endTime vào ngày $day đã bị hủy bởi bệnh viện !";
-
-            if ($workSchedule->doctor_email) {
-                $contentDoctor = "Lịch làm việc giữa bạn và $workSchedule->user_name trong khoảng thời gian từ $startTime đến $endTime vào ngày $day đã bị bởi bệnh viện !";
-                Queue::push(new SendMailNotify($workSchedule->doctor_email, $contentDoctor));
+            $content = $workSchedule->work_schedule_content;
+            $thongbao = 'Lịch có thông tin chi tiết như sau đã được hủy thành công !';
+            if ($workSchedule->hospital_email) {
+                Queue::push(new SendMailDefault($workSchedule->hospital_email, $thongbao, $content));
             }
-            Queue::push(new SendMailNotify($workSchedule->hospital_email, $contentHospital));
-            Queue::push(new SendMailNotify($workSchedule->user_email, $contentUser));
+            $thongbao = 'Lịch có thông tin chi tiết như sau đã được hủy bởi bệnh viện !';
+            if ($workSchedule->email_patient) {
+                Queue::push(new SendMailDefault($workSchedule->email_patient, $thongbao, $content));
+            }
+            if ($workSchedule->user_email) {
+                Queue::push(new SendMailDefault($workSchedule->user_email, $thongbao, $content));
+            }
+            if ($workSchedule->doctor_email) {
+                Queue::push(new SendMailDefault($workSchedule->doctor_email, $thongbao, $content));
+            }
 
             $workSchedule->delete();
             Rating::where('id_work_schedule', $id_work_schedule)->delete(); // xóa lịch => xóa rating tương ứng
 
             return $this->responseOK(200, null, 'Hủy bỏ lịch tư vấn , dịch vụ thành công !');
+        } catch (Throwable $e) {
+            return $this->responseError(400, $e->getMessage());
+        }
+    }
+
+    public function changeConfirm(RequestConfirmWorkSchedule $request, $id_work_schedule)
+    {
+        try {
+            $hospital = Auth::user();
+            $filter = (object) [
+                'search' => '',
+                'hospital_id' => $hospital->id,
+                'work_schedule_id' => $id_work_schedule,
+                'role' => 'hospital',
+            ];
+            $workSchedule = $this->workScheduleRepository->searchWorkSchedule($filter)->first();
+            if (empty($workSchedule)) {
+                return $this->responseError(400, 'Không tìm thấy lịch tư vấn hay dịch vụ !');
+            }
+
+            // + Lý do : $message là một từ khóa đặc biệt => không nên đặt biến khi gửi mail
+            // đặt là $thongbao hoặc từ nào đó chứ không nên đặt những từ có thể là từ khóa ví dụ như : $message là một từ khóa
+            $thongbao = 'Lịch có thông tin chi tiết như sau đã thay đổi trạng thái sang chưa được xác nhận !';
+            $content = $workSchedule->work_schedule_content;
+            if ($request->is_confirm == '1') {
+                $thongbao = 'Lịch có thông tin chi tiết như sau đã được xác nhận !';
+            }
+            if ($workSchedule->email_patient) {
+                Queue::push(new SendMailDefault($workSchedule->email_patient, $thongbao, $content));
+            }
+            if ($workSchedule->user_email) {
+                Queue::push(new SendMailDefault($workSchedule->user_email, $thongbao, $content));
+            }
+            if ($workSchedule->doctor_email) {
+                Queue::push(new SendMailDefault($workSchedule->doctor_email, $thongbao, $content));
+            }
+
+            $workSchedule = WorkSchedule::find($id_work_schedule);
+            $workSchedule->update([
+                'is_confirm' => $request->is_confirm,
+            ]);
+            // gửi mail đến bác sĩ , bệnh viện , người dùng
+
+            return $this->responseOK(200, null, 'Thay đổi trạng thái lịch tư vấn dịch vụ thành công !');
         } catch (Throwable $e) {
             return $this->responseError(400, $e->getMessage());
         }
@@ -572,20 +691,22 @@ class WorkScheduleService
 
             if (count($workSchedules) > 0) {
                 foreach ($workSchedules as $workSchedule) {
-                    $workSchedule->work_schedule_time = json_decode($workSchedule->work_schedule_time);
-                    $startTime = $workSchedule->work_schedule_time->interval[0];
-                    $endTime = $workSchedule->work_schedule_time->interval[1];
-                    $day = $workSchedule->work_schedule_time->date;
-
-                    $contentHospital = "Lịch làm việc giữa bác sĩ $workSchedule->doctor_name và khách hàng $workSchedule->user_name trong khoảng thời gian từ $startTime đến $endTime vào ngày $day đã bị bởi người dùng !";
-                    $contentUser = "Lịch làm việc giữa bạn và bác sĩ $workSchedule->doctor_name thuộc bệnh viện $workSchedule->hospital_name trong khoảng thời gian từ $startTime đến $endTime vào ngày $day đã được hủy thành công !";
-
-                    if ($workSchedule->doctor_email) {
-                        $contentDoctor = "Lịch làm việc giữa bạn và $workSchedule->user_name trong khoảng thời gian từ $startTime đến $endTime vào ngày $day đã bị bởi người dùng !";
-                        Queue::push(new SendMailNotify($workSchedule->doctor_email, $contentDoctor));
+                    // gửi mail đến bác sĩ , bệnh viện , người dùng
+                    $content = $workSchedule->work_schedule_content;
+                    $thongbao = 'Lịch có thông tin chi tiết như sau đã được hủy thành công !';
+                    if ($workSchedule->email_patient) {
+                        Queue::push(new SendMailDefault($workSchedule->email_patient, $thongbao, $content));
                     }
-                    Queue::push(new SendMailNotify($workSchedule->hospital_email, $contentHospital));
-                    Queue::push(new SendMailNotify($workSchedule->user_email, $contentUser));
+                    if ($workSchedule->user_email) {
+                        Queue::push(new SendMailDefault($workSchedule->user_email, $thongbao, $content));
+                    }
+                    $thongbao = 'Lịch có thông tin chi tiết như sau đã được hủy bởi người dùng !';
+                    if ($workSchedule->doctor_email) {
+                        Queue::push(new SendMailDefault($workSchedule->doctor_email, $thongbao, $content));
+                    }
+                    if ($workSchedule->hospital_email) {
+                        Queue::push(new SendMailDefault($workSchedule->hospital_email, $thongbao, $content));
+                    }
 
                     $workSchedule->delete();
                     Rating::where('id_work_schedule', $workSchedule->work_schedule_id)->delete();
@@ -615,20 +736,22 @@ class WorkScheduleService
 
             if (count($workSchedules) > 0) {
                 foreach ($workSchedules as $workSchedule) {
-                    $workSchedule->work_schedule_time = json_decode($workSchedule->work_schedule_time);
-                    $startTime = $workSchedule->work_schedule_time->interval[0];
-                    $endTime = $workSchedule->work_schedule_time->interval[1];
-                    $day = $workSchedule->work_schedule_time->date;
-
-                    $contentHospital = "Lịch làm việc giữa bác sĩ $workSchedule->doctor_name và khách hàng $workSchedule->user_name trong khoảng thời gian từ $startTime đến $endTime vào ngày $day đã được hủy thành công !";
-                    $contentUser = "Lịch làm việc giữa bạn và bác sĩ $workSchedule->doctor_name thuộc bệnh viện $workSchedule->hospital_name trong khoảng thời gian từ $startTime đến $endTime vào ngày $day đã bị hủy bởi bệnh viện !";
-
-                    if ($workSchedule->doctor_email) {
-                        $contentDoctor = "Lịch làm việc giữa bạn và $workSchedule->user_name trong khoảng thời gian từ $startTime đến $endTime vào ngày $day đã bị bởi bệnh viện !";
-                        Queue::push(new SendMailNotify($workSchedule->doctor_email, $contentDoctor));
+                    // gửi mail đến bác sĩ , bệnh viện , người dùng
+                    $content = $workSchedule->work_schedule_content;
+                    $thongbao = 'Lịch có thông tin chi tiết như sau đã được hủy thành công !';
+                    if ($workSchedule->hospital_email) {
+                        Queue::push(new SendMailDefault($workSchedule->hospital_email, $thongbao, $content));
                     }
-                    Queue::push(new SendMailNotify($workSchedule->hospital_email, $contentHospital));
-                    Queue::push(new SendMailNotify($workSchedule->user_email, $contentUser));
+                    $thongbao = 'Lịch có thông tin chi tiết như sau đã được hủy bởi bệnh viện !';
+                    if ($workSchedule->email_patient) {
+                        Queue::push(new SendMailDefault($workSchedule->email_patient, $thongbao, $content));
+                    }
+                    if ($workSchedule->user_email) {
+                        Queue::push(new SendMailDefault($workSchedule->user_email, $thongbao, $content));
+                    }
+                    if ($workSchedule->doctor_email) {
+                        Queue::push(new SendMailDefault($workSchedule->doctor_email, $thongbao, $content));
+                    }
 
                     $workSchedule->delete();
                     Rating::where('id_work_schedule', $workSchedule->work_schedule_id)->delete();

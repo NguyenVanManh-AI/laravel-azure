@@ -2,11 +2,10 @@
 <html>
 
 <head>
-    <title>Reset Password</title>
+    <title>Đặt lại mật khẩu</title>
 </head>
 <body>
-    <h1>Reset Password from System</h1>
-    <h2>Here is the email to reset the password. Please click the link here. <br>
+    <h2>Đây là email để thiết lập lại mật khẩu. Vui lòng nhấp vào liên kết ở đây.<br>
         <a href="{{ $url }}">{{ $url }}</a>
     </h2>
 </body>

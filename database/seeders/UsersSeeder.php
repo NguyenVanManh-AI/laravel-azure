@@ -25,6 +25,12 @@ class UsersSeeder extends Seeder
         if (!File::exists($pathFolder)) {
             File::makeDirectory($pathFolder, 0755, true);
         }
+
+        $pathFolderHospital = 'public/storage/image/covers/hospitals';
+        if (!File::exists($pathFolderHospital)) {
+            File::makeDirectory($pathFolderHospital, 0755, true);
+        }
+
         $hospitals = [
             [
                 'email' => 'benhviengiadinh@yopmail.com',
@@ -70,14 +76,19 @@ class UsersSeeder extends Seeder
             ],
         ];
 
+        $pathFolder = 'storage/app/public/image/avatars/hospitals/';
+        if (!File::exists($pathFolder)) {
+            File::makeDirectory($pathFolder, 0755, true);
+        }
+
+        $pathFolderHospital = 'storage/app/public/image/covers/hospitals/';
+        if (!File::exists($pathFolderHospital)) {
+            File::makeDirectory($pathFolderHospital, 0755, true);
+        }
         foreach ($hospitals as $index => $hospital) {
             try {
-                $pathFolder = 'storage/app/public/image/avatars/hospitals/';
-                if (!File::exists($pathFolder)) {
-                    File::makeDirectory($pathFolder, 0755, true);
-                }
-                $client = new Client;
                 while (true) {
+                    $client = new Client;
                     $response = $client->get('https://picsum.photos/200/200');
                     $imageContent = $response->getBody()->getContents();
                     $nameImage = uniqid() . '.jpg';
@@ -99,15 +110,26 @@ class UsersSeeder extends Seeder
                         $user = User::create($data);
 
                         // infor_hospital
-                        $data = [
-                            'id_hospital' => $user->id,
-                            'province_code' => random_int(1, 63),
-                            'infrastructure' => json_encode(['Máy nội soi', 'Giường bệnh', 'Phòng xét nghiệm', 'Máy chụp phim X-Quang kỹ thuật số', 'Chụp cắt lớp vi tính (Chụp CT)', 'Siêu âm', 'Máy chụp nhũ ảnh', 'Máy khám tân tiến']),
-                            'description' => 'Bệnh viện tốt, đa chuyên khoa, dịch vụ giá cả hợp lí .',
-                            'location' => json_encode([19, 29]),
-                            'search_number' => random_int(0, 300),
-                        ];
-                        $inforUser = InforHospitalRepository::createHospital($data);
+                        while (true) {
+                            $client = new Client;
+                            $responseCover = $client->get('https://picsum.photos/200/200');
+                            $imageContentCover = $responseCover->getBody()->getContents();
+                            $nameImageCover = uniqid() . '.jpg';
+                            $coverHospital = $pathFolderHospital . $nameImageCover;
+                            if (file_put_contents($coverHospital, $imageContentCover)) {
+                                $data = [
+                                    'id_hospital' => $user->id,
+                                    'cover_hospital' => 'storage/image/covers/hospitals/' . $nameImageCover,
+                                    'province_code' => random_int(1, 63),
+                                    'infrastructure' => json_encode(['Máy nội soi', 'Giường bệnh', 'Phòng xét nghiệm', 'Máy chụp phim X-Quang kỹ thuật số', 'Chụp cắt lớp vi tính (Chụp CT)', 'Siêu âm', 'Máy chụp nhũ ảnh', 'Máy khám tân tiến']),
+                                    'description' => 'Bệnh viện tốt, đa chuyên khoa, dịch vụ giá cả hợp lí .',
+                                    'location' => json_encode([19, 29]),
+                                    'search_number' => random_int(0, 300),
+                                ];
+                                $inforUser = InforHospitalRepository::createHospital($data);
+                                break;
+                            }
+                        }
                         // infor_hospital
 
                         // addTimeWork
@@ -203,14 +225,14 @@ class UsersSeeder extends Seeder
             ],
         ];
 
+        $pathFolder = 'storage/app/public/image/avatars/users/';
+        if (!File::exists($pathFolder)) {
+            File::makeDirectory($pathFolder, 0755, true);
+        }
         foreach ($users as $index => $user) {
             try {
-                $pathFolder = 'storage/app/public/image/avatars/users/';
-                if (!File::exists($pathFolder)) {
-                    File::makeDirectory($pathFolder, 0755, true);
-                }
-                $client = new Client;
                 while (true) {
+                    $client = new Client;
                     $response = $client->get('https://picsum.photos/200/200');
                     $imageContent = $response->getBody()->getContents();
                     $nameImage = uniqid() . '.jpg';

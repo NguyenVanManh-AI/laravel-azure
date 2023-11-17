@@ -17,6 +17,15 @@ class WorkSchedule extends Model
         'price',
         'time',
         'content',
+
+        'name_patient',
+        'date_of_birth_patient',
+        'gender_patient',
+        'email_patient',
+        'phone_patient',
+        'address_patient',
+        'health_condition',
+        'is_confirm',
     ];
 
     protected $hidden = [

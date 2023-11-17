@@ -19,6 +19,8 @@ class VerifyEmail extends Mailable
 
     public function build()
     {
-        return $this->view('emails.verify_email')->with('url', $this->url);
+        $subject = 'Thông báo từ hệ thống Elister Health Care';
+
+        return $this->subject($subject)->view('emails.verify_email')->with('url', $this->url);
     }
 }

@@ -1,0 +1,57 @@
+<div style="background-color: #007eff1c;padding: 20px;border: 2px dashed #007bff;">
+    <p style="text-align: center; "></p>
+    @if($infors->messsge)
+    <h3 style="text-align: center;">
+        <span style="font-style: italic; color: rgb(40, 167, 69);">Đặt lịch tư vấn thành công !&nbsp;</span>
+    </h3>
+    @endif
+    <p></p>
+    <p><span style="font-weight: bold; color: rgb(0, 123, 255);">Thông tin lịch hẹn tư vấn chi tiết :</span></p>
+    {{-- @if($user)
+        <p><span style="color: rgb(40, 167, 69); font-weight: bold;">Thông tin tài khoản :&nbsp;</span></p>
+        <p></p>
+        <ol style="list-style: decimal;">
+            <li><span>Tên tài khoản : <span style="font-weight: bold;">{{$user->name}}</span></span></li>
+            <li><span>Email : <span style="font-weight: bold;">{{$user->email}}&nbsp;</span></span></li>
+            <li><span>SĐT : <span style="font-weight: bold;">{{$user->phone}}&nbsp;</span></span></li>
+        </ol>
+    @endif --}}
+    <p></p>
+    <p><span style="color: rgb(40, 167, 69); font-weight: bold;">Thông tin khách hàng :&nbsp;</span></p>
+    <p></p>
+    <ol>
+        <li><span>Tên khách hàng : <span style="font-weight: bold;">{{$infors->name_patient}}&nbsp;</span></span></li>
+        @if($infors->gender_patient == 1)
+        <li><span>Giới tính : <span style="font-weight: bold;">Nam &nbsp;</span></span></li>
+        @else 
+        <li><span>Giới tính : <span style="font-weight: bold;">Nữ &nbsp;</span></span></li>
+        @endif
+        <li><span>Ngày sinh : <span style="font-weight: bold;">{{$infors->date_of_birth_patient}}</span></span></li>
+        <li><span>Email : <span style="font-weight: bold;">{{$infors->email_patient}}</span></span></li>
+        <li><span>SĐT : <span style="font-weight: bold;">{{$infors->phone_patient}}</span></span></li>
+        <li><span>Địa chỉ : <span style="font-weight: bold;">{{$infors->address_patient}}&nbsp;</span></span></li>
+        <li><span>Bệnh trạng : <span style="font-weight: bold;">{!! $infors->health_condition !!}</span></span></li>
+    </ol>
+    <p></p>
+    <p><span style="font-weight: bold; color: rgb(40, 167, 69);">Thông tin bác sĩ tư vấn :&nbsp;</span></p>
+    <p></p>
+    <ol>
+        <li><span>Tên bác sĩ : <span style="font-weight: bold;">{{$infors->name_doctor}}</span></span></li>
+        <li><span>Email : <span style="font-weight: bold;">{{$infors->email_doctor}}</span></span></li>
+        <li><span>SĐT bác sĩ : <span style="font-weight: bold;">{{$infors->phone_doctor}}</span></span></li>
+        <li><span>Chuyên khoa : <span style="font-weight: bold;">{{$infors->name_department}}&nbsp;</span></span></li>
+        <li>Bệnh viện : <span style="font-weight: bold;">{{$infors->name_hospital}}</span></li>
+        <li>SĐT bệnh viện : <span style="font-weight: bold;">{{$infors->phone_hospital}}&nbsp; &nbsp;</span></li>
+        <li>Địa chỉ bệnh viện : <span style="font-weight: bold;">{{$infors->address_hospital}}&nbsp;</span></li>
+    </ol>
+    <div><span style="font-weight: 700;"><span style="color: rgb(40, 167, 69); font-weight: 700; ">Các thông tin khác :</span></span></div>
+    <p></p>
+    <ol>
+        <li><span>Phí tư vấn : <span style="color: rgb(255, 0, 0); font-weight: bold;">{{number_format($infors->price, 0, ',', '.')}} VNĐ</span></span></li>
+        <li><span>Khoảng thời gian tư vấn : <span style="font-weight: bold; color: rgb(0, 123, 255);">
+            {{$infors->time->interval[0]}} - {{$infors->time->interval[1]}} Ngày {{$infors->time->date}}
+        </span></span></li>
+        <li><span><span style="color: rgb(0, 0, 0);">Địa chỉ : <span style="font-weight: bold; color: rgb(0, 123, 255);">{{$infors->address_hospital}}&nbsp;</span></span></span>
+        </li>
+    </ol>
+</div>

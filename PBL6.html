@@ -1931,3 +1931,103 @@ cha cũng thay đổi
 
 => để tránh tình trạng này thfi ta gán không có tham chiếu cho nó bằng cách tạo một bảng sao rồi gán cho nó . 
 this.book = Object.assign({}, newVal);
+
+
+-------------------------------------------------------
+[Quan trọng]
++ Lỗi khi gửi mail có truyền biến => render html : 
+    + [2023-11-17 20:29:28] local.ERROR: Object of class Illuminate\Mail\Message could not be converted to string (View: C:\laragon\www\laravel-azure\resources\views\emails\mail_notify_default.blade.php) {"exception":"[object] (Illuminate\\View\\ViewException(code: 0): Object of class Illuminate\\Mail\\Message could not be converted to string (View: C:\\laragon\\www\\laravel-azure\\resources\\views\\emails\\mail_notify_default.blade.php) at C:\\laragon\\www\\laravel-azure\\storage\\framework\\views\\d3b520157b0d78e1b2f57dd601f5a3ef33b6af3c.php:9)
+
+    + Lý do : $message là một từ khóa đặc biệt => không nên đặt biến khi gửi mail 
+  
+Code : 
++ 
+        $thongbao = "Lịch có thông tin chi tiết như sau đã được thay đổi trạng thái";
+        $content = $workSchedule->work_schedule_content;
+        if($request->is_confirm == '1') {
+            $thongbao = "Lịch có thông tin chi tiết như sau đã được xác nhận";
+        }
+        if($workSchedule->email_patient) Queue::push(new SendMailDefault($workSchedule->email_patient, $thongbao, $content));
+
+
++ C:\laragon\www\laravel-azure\app\Jobs\SendMailDefault.php
+        class SendMailDefault implements ShouldQueue
+        {
+            use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+
+            public $email;
+
+            public $thongbao;
+
+            public $content;
+
+            public function __construct($email, $thongbao, $content)
+            {
+                $this->email = $email;
+                $this->thongbao = $thongbao;
+                $this->content = $content;
+            }
+
+            public function handle()
+            {
+                $email = $this->email;
+                $thongbao = $this->thongbao;
+                $content = $this->content;
+
+                // Các bước xử lý logic liên quan đến email và token
+                Mail::to($email)->send(new MailNotifyDefault($thongbao, $content));
+                info("Email sent to $email with content: $content and message : $thongbao");
+                Log::info("Email sent to $email with content: $content and message : $thongbao");
+            }
+        }
+
++ C:\laragon\www\laravel-azure\app\Mail\MailNotifyDefault.php
+        <?php
+
+        namespace App\Mail;
+
+        use Illuminate\Bus\Queueable;
+        use Illuminate\Mail\Mailable;
+        use Illuminate\Queue\SerializesModels;
+
+        class MailNotifyDefault extends Mailable
+        {
+            use Queueable, SerializesModels;
+
+            public $thongbao;
+            public $content;
+
+            public function __construct($thongbao, $content)
+            {
+                $this->thongbao = $thongbao;
+                $this->content = $content;
+            }
+
+            public function build()
+            {
+                $thongbao = $this->thongbao; 
+                $content = $this->content;
+                return $this->view('emails.mail_notify_default',compact(['thongbao','content']));
+            }
+        }
+
++ C:\laragon\www\laravel-azure\resources\views\emails\mail_notify_default.blade.php
+        <!DOCTYPE html>
+        <html>
+
+        <head>
+            <title>Thông báo từ hệ thống</title>
+        </head>
+
+        <body>
+            <div>{!! $thongbao !!}</div>
+            <div>{!! $content !!}</div>
+        </body>
+
+        </html>
+
+
+=> Không được đổi tên biến $thongbao thành $message => nó sẽ lỗi vì $message là một từ khóa . 
+
+-------------------------------------------------------
++ Sửa .blade lại thì nhớ chạy : php artisan optimize:clear và php artisan optimize để nó reset lại cache . 

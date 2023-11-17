@@ -22,6 +22,8 @@ class PasswordNewAdmin extends Mailable
 
     public function build()
     {
-        return $this->view('emails.send_new_password')->with(['email' => $this->email, 'new_password' => $this->new_password]);
+        $subject = 'Thông báo từ hệ thống Elister Health Care';
+
+        return $this->subject($subject)->view('emails.send_new_password')->with(['email' => $this->email, 'new_password' => $this->new_password]);
     }
 }

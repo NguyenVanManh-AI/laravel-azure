@@ -13,9 +13,11 @@ class HospitalService extends Model
         'id',
         'id_hospital_department',
         'name',
+        'thumbnail_service',
         'time_advise',
         'price',
         'infor',
+        'search_number_service',
         'is_delete',
     ];
 

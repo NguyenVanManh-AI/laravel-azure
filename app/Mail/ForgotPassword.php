@@ -19,6 +19,8 @@ class ForgotPassword extends Mailable
 
     public function build()
     {
-        return $this->view('emails.send_code')->with('url', $this->url);
+        $subject = 'Thông báo từ hệ thống Elister Health Care';
+
+        return $this->subject($subject)->view('emails.send_code')->with('url', $this->url);
     }
 }
