@@ -166,6 +166,12 @@ class RatingRepository extends BaseRepository implements RatingInterface
                     $query->whereNull('work_schedules.id_service');
                 } elseif ($filter->is_service === 'service') {
                     $query->whereNotNull('work_schedules.id_service');
+                } elseif ($filter->is_service === 'not_specified') {
+                    $query->whereNotNull('work_schedules.id_service')
+                        ->whereNull('work_schedules.id_doctor');
+                } elseif ($filter->is_service === 'has_specified') {
+                    $query->whereNotNull('work_schedules.id_service')
+                        ->whereNotNull('work_schedules.id_doctor');
                 }
             });
         });
