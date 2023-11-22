@@ -22,7 +22,7 @@ class HospitalDepartmentsSeeder extends Seeder
                     'id_hospital' => $hospital->id,
                     // 'time_advise' => rand(1, 4) * 30,
                     'time_advise' => 30, // để cho bên workschedule dễ seed
-                    'price' => rand(1, 60) * 50000,
+                    'price' => rand(1, 6) * 50000,
                     'created_at' => now(),
                     'updated_at' => now(),
                 ]);
