@@ -96,6 +96,7 @@ Route::prefix('infor-hospital')->controller(InforHospitalController::class)->gro
         Route::post('add-doctor', 'addDoctor');
         Route::post('update-infor-extend/{id_doctor}', 'updateInforExtend');
         Route::get('all-doctor', 'allDoctor');
+        Route::get('doctor/{id_doctor}', 'getDoctor');
         Route::post('change-confirm/{id}', 'changeConfirm');
     });
     Route::get('all-hospital', 'allHospital');

@@ -9,6 +9,7 @@ use App\Http\Requests\RequestCreateNewDoctor;
 use App\Http\Requests\RequestUpdateHospital;
 use App\Jobs\SendMailNotify;
 use App\Jobs\SendVerifyEmail;
+use App\Models\InforDoctor;
 use App\Models\InforExtendDoctor;
 use App\Models\Rating;
 use App\Models\User;
@@ -412,6 +413,19 @@ class InforHospitalService
             if (empty($inforDoctor)) {
                 return $this->responseError(400, 'Không tìm thấy bác sĩ !');
             } else {
+                // update infor doctor
+                $dataUser = [
+                    'name' => $request->name ?? User::find($id_doctor)->name,
+                ];
+                $dataInfor = [
+                    'id_department' => $request->id_department ?? $inforDoctor->id_department,
+                    'province_code' => $request->province_code ?? $inforDoctor->province_code,
+                ];
+                User::find($id_doctor)->update($dataUser);
+                InforDoctor::where('id_doctor', $id_doctor)->update($dataInfor);
+                // update infor doctor
+
+                // update infor extends doctor
                 $inforExtendDoctor = InforExtendDoctor::where('id_doctor', $id_doctor)->first();
 
                 $dataToUpdate = [];
@@ -443,6 +457,7 @@ class InforHospitalService
 
                 $inforExtendDoctor->update($dataToUpdate);
 
+                $inforDoctor = InforDoctorRepository::getInforDoctor($filter)->first();
                 $inforExtendDoctor->prominent = json_decode($inforExtendDoctor->prominent);
                 $inforExtendDoctor->strengths = json_decode($inforExtendDoctor->strengths);
                 $inforExtendDoctor->work_experience = json_decode($inforExtendDoctor->work_experience);
@@ -756,6 +771,41 @@ class InforHospitalService
             $doctor = InforDoctorRepository::updateResult($doctor, $data);
 
             return $this->responseOK(200, $doctor, 'Thay đổi trạng thái của bác sĩ thành công !');
+        } catch (Throwable $e) {
+            return $this->responseError(400, $e->getMessage());
+        }
+    }
+
+    public function getDoctor(Request $request, $id_doctor)
+    {
+        try {
+            $user = Auth::user();
+            $filter = (object) [
+                'search' => $request->search ?? '',
+                'role' => 'doctor',
+                'is_accept' => 'both',
+                'is_confirm' => 'both',
+                'id_hospital' => $user->id,
+                'id_doctor' => $id_doctor,
+            ];
+            $doctor = UserRepository::doctorOfHospital($filter)->first();
+            if (!empty($doctor)) {
+                $inforExtendDoctor = InforExtendDoctor::where('id_doctor', $doctor->id_doctor)->first();
+
+                $inforExtendDoctor->prominent = json_decode($inforExtendDoctor->prominent);
+                $inforExtendDoctor->strengths = json_decode($inforExtendDoctor->strengths);
+                $inforExtendDoctor->work_experience = json_decode($inforExtendDoctor->work_experience);
+                $inforExtendDoctor->training_process = json_decode($inforExtendDoctor->training_process);
+                $inforExtendDoctor->language = json_decode($inforExtendDoctor->language);
+                $inforExtendDoctor->awards_recognition = json_decode($inforExtendDoctor->awards_recognition);
+                $inforExtendDoctor->research_work = json_decode($inforExtendDoctor->research_work);
+
+                $doctor->infor_extend = $inforExtendDoctor;
+            } else {
+                return $this->responseError(400, 'Không tìm bác sĩ trong bệnh viện !');
+            }
+
+            return $this->responseOK(200, $doctor, 'Xem tất cả bác sĩ thành công !');
         } catch (Throwable $e) {
             return $this->responseError(400, $e->getMessage());
         }

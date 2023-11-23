@@ -2031,3 +2031,27 @@ Code :
 
 -------------------------------------------------------
 + Sửa .blade lại thì nhớ chạy : php artisan optimize:clear và php artisan optimize để nó reset lại cache . 
+
+namespace App\Http\Controllers;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Response;
+
+class FileController extends Controller
+{
+    public function downloadFile($filename)
+    {
+        $file_path = storage_path('app/storage/' . $filename);
+
+        if (file_exists($file_path)) {
+            $headers = [
+                'Content-Type' => 'application/octet-stream',
+            ];
+
+            return response()->download($file_path, $filename, $headers);
+        } else {
+            return response()->json(['error' => 'File not found.'], 404);
+        }
+    }
+}
+-------------------------------------------------------

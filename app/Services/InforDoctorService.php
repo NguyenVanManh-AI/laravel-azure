@@ -68,7 +68,26 @@ class InforDoctorService
             $user = UserRepository::findUserById(auth('user_api')->user()->id);
             $inforUser = InforDoctorRepository::getInforDoctor(['id_doctor' => $user->id])->first();
 
+            $department = Department::find($inforUser->id_department);
+            $inforUser->department = $department;
+
+            $inforExtendDoctor = InforExtendDoctor::where('id_doctor', $user->id)->first();
+            $inforExtendDoctor->prominent = json_decode($inforExtendDoctor->prominent);
+            $inforExtendDoctor->strengths = json_decode($inforExtendDoctor->strengths);
+            $inforExtendDoctor->work_experience = json_decode($inforExtendDoctor->work_experience);
+            $inforExtendDoctor->training_process = json_decode($inforExtendDoctor->training_process);
+            $inforExtendDoctor->language = json_decode($inforExtendDoctor->language);
+            $inforExtendDoctor->awards_recognition = json_decode($inforExtendDoctor->awards_recognition);
+            $inforExtendDoctor->research_work = json_decode($inforExtendDoctor->research_work);
+            $inforUser->infor_extend = $inforExtendDoctor;
+
             $doctor = array_merge($user->toArray(), $inforUser->toArray());
+
+            // không được code như này , mà phải code như trên :
+            // $user = UserRepository::findUserById(auth('user_api')->user()->id);
+            // $inforUser = InforDoctorRepository::getInforDoctor(['id_doctor' => $user->id])->first();
+            // $doctor = array_merge($user->toArray(), $inforUser->toArray());
+            // $doctor->infor_extend = $inforExtendDoctor; // nếu muốn code như này thì phải chuyển $doctor về object
 
             return $this->responseOK(200, $doctor, 'Xem thông tin cá nhân thành công !');
         } catch (Throwable $e) {
