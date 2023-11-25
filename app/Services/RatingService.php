@@ -59,6 +59,10 @@ class RatingService
                 return $this->responseError(400, 'Không tìm thấy dịch vụ hay tư vấn để đánh giá !');
             }
 
+            if ($workSchedule->is_confirm != 1) {
+                return $this->responseError(400, 'Không thể đánh giá khi lịch chưa được xác nhận !');
+            }
+
             $rating = Rating::where('id_user', $user->id)->where('id_work_schedule', $id_work_schedule)->first();
             if ($rating) {
                 return $this->responseError(400, 'Bạn đã đánh giá dịch vụ , tư vấn này rồi !');

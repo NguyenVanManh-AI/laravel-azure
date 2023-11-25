@@ -558,6 +558,10 @@ class WorkScheduleService
                 return $this->responseError(403, 'Bạn không có quyền !');
             }
 
+            if ($workSchedule->is_confirm == 1) {
+                return $this->responseError(400, 'Lịch đã được xác nhận , bạn không được phép hủy !');
+            }
+
             $filter = (object) [
                 'search' => '',
                 'user_id' => $user->id,
@@ -687,6 +691,7 @@ class WorkScheduleService
                 'user_id' => $user->id,
                 'search' => '',
                 'role' => 'user',
+                'is_confirm' => 0,
             ];
             $workSchedules = $this->workScheduleRepository->searchWorkSchedule($filter)->get();
 

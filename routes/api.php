@@ -14,6 +14,7 @@ use App\Http\Controllers\InforUserController;
 use App\Http\Controllers\ProvinceController;
 use App\Http\Controllers\PublicController;
 use App\Http\Controllers\RatingController;
+use App\Http\Controllers\StatisticalController;
 use App\Http\Controllers\TimeWorkController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\WorkScheduleController;
@@ -274,5 +275,25 @@ Route::prefix('rating')->controller(RatingController::class)->group(function () 
 
     Route::middleware(['auth:user_api', 'role:hospital'])->group(function () {
         Route::get('/hospital', 'hospitalManage');
+    });
+});
+
+// Statistical
+Route::prefix('statistical')->controller(StatisticalController::class)->group(function () {
+    Route::middleware(['auth:admin_api'])->group(function () {
+        Route::get('/user', 'user');
+        Route::get('/article', 'article');
+    });
+
+    Route::middleware(['auth:admin_api,user_api', 'role:admin,superadmin,manager,hospital'])->group(function () {
+        Route::get('/top', 'top');
+    });
+
+    Route::middleware(['auth:user_api', 'role:hospital'])->group(function () {
+        Route::get('/advise', 'advise');
+        Route::get('/service', 'service');
+
+        Route::get('/service-table', 'serviceTable');
+        Route::get('/advise-table', 'adviseTable');
     });
 });

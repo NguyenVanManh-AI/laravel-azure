@@ -329,8 +329,6 @@ class RatingsSeeder extends Seeder
         ];
 
         $workScheduleAdvise = WorkSchedule::whereNull('id_service')->whereNotNull('id_user')->where('is_confirm', 1)->get();
-        $workScheduleService = WorkSchedule::whereNotNull('id_service')->whereNotNull('id_user')->where('is_confirm', 1)->get();
-
         foreach ($workScheduleAdvise as $ws) {
             $rating = (object) $ratings_advise[array_rand($ratings_advise)];
             $data = [
@@ -344,6 +342,7 @@ class RatingsSeeder extends Seeder
             Rating::create($data);
         }
 
+        $workScheduleService = WorkSchedule::whereNotNull('id_service')->whereNotNull('id_user')->where('is_confirm', 1)->get();
         foreach ($workScheduleService as $ws) {
             $rating = (object) $ratings_service[array_rand($ratings_service)];
             $data = [
