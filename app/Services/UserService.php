@@ -6,6 +6,7 @@ use App\Enums\UserEnum;
 use App\Http\Requests\RequestChangePassword;
 use App\Http\Requests\RequestCreatePassword;
 use App\Http\Requests\RequestSendForgot;
+use App\Http\Requests\RequestUserLogin;
 use App\Jobs\SendForgotPasswordEmail;
 use App\Models\User;
 use App\Repositories\InforDoctorRepository;
@@ -62,7 +63,7 @@ class UserService
         ], $status);
     }
 
-    public function login(Request $request)
+    public function login(RequestUserLogin $request)
     {
         try {
             $user = $this->userRepository->findUserByEmail($request->email);

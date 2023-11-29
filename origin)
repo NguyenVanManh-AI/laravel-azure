@@ -1,0 +1,5 @@
+Warning: TTY mode is not supported on Windows platform.
+PHPUnit 9.6.10 by Sebastian Bergmann and contributors.
+
+Cannot open file "C:\laragon\www\laravel-azure(main".
+
