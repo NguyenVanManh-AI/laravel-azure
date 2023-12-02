@@ -34,7 +34,7 @@ class RequestCreateWorkScheduleService extends FormRequest
             'gender_patient' => 'required|in:0,1,2',
             'email_patient' => 'required|string|email',
             'phone_patient' => 'required|min:9|numeric',
-            'address_patient' => 'required|string',
+            'address_patient' => 'string',
             'health_condition' => 'required|string',
         ];
     }

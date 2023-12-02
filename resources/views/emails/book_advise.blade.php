@@ -29,7 +29,7 @@
         <li><span>Ngày sinh : <span style="font-weight: bold;">{{$infors->date_of_birth_patient}}</span></span></li>
         <li><span>Email : <span style="font-weight: bold;">{{$infors->email_patient}}</span></span></li>
         <li><span>SĐT : <span style="font-weight: bold;">{{$infors->phone_patient}}</span></span></li>
-        <li><span>Địa chỉ : <span style="font-weight: bold;">{{$infors->address_patient}}&nbsp;</span></span></li>
+        <li><span>Địa chỉ : <span style="font-weight: bold;">{{ $infors->address_patient !== null ? $infors->address_patient : 'Trống' }}&nbsp;</span></span></li>
         <li><span>Bệnh trạng : <span style="font-weight: bold;">{!! $infors->health_condition !!}</span></span></li>
     </ol>
     <p></p>
