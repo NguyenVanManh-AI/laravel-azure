@@ -1,8 +1,8 @@
-<div style="background-color: #007eff1c;padding: 20px;border: 2px dashed #007bff;">
+<div>
     <p style="text-align: center; "></p>
     @if($infors->messsge)
     <h3 style="text-align: center;">
-        <span style="font-style: italic; color: rgb(40, 167, 69);">Đặt lịch tư vấn thành công !&nbsp;</span>
+        <span style="font-style: italic; color: rgb(40, 167, 69);">{{ $infors->messsge }} &nbsp;</span>
     </h3>
     @endif
     <p></p>

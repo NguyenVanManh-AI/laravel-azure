@@ -247,6 +247,7 @@ Route::prefix('work-schedule')->controller(WorkScheduleController::class)->group
         Route::delete('/hospital-cancel/{id}', 'hospitalCancel');
         Route::delete('/hospital-cancel-many', 'hospitalCancelMany');
         Route::post('/change-confirm/{id}', 'changeConfirm');
+        Route::post('/update-infor-patient/{id_work_schedule}', 'updateInforPatient');
     });
 
     Route::middleware(['auth:user_api', 'role:doctor'])->group(function () {

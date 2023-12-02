@@ -18,10 +18,12 @@
         <p style="margin: 0;margin-bottom: 5px;">{{ now() }}</p>
     </div>
 
-    <h3 style="text-align: center;">
-        <span style="font-style: italic; color: rgb(40, 167, 69);">{!! $thongbao !!}&nbsp;</span>
-    </h3>
-    <div>{!! $content !!}</div>
+    <div style="background-color: #007eff1c;padding: 20px;border: 2px dashed #007bff;">
+        <h3 style="text-align: center;">
+            <span style="font-style: italic; color: rgb(40, 167, 69);">{!! $thongbao !!}&nbsp;</span>
+        </h3>
+        <div>{!! $content !!}</div>
+    </div>
 
     <div style="
     background-color: rgb(240, 255, 240);

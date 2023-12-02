@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Http\Requests\RequestConfirmWorkSchedule;
 use App\Http\Requests\RequestCreateWorkScheduleAdvise;
 use App\Http\Requests\RequestCreateWorkScheduleService;
+use App\Http\Requests\RequestUpdateInforPatient;
 use App\Jobs\SendMailDefault;
 use App\Jobs\SendMailNotify;
 use App\Models\InforDoctor;
@@ -116,7 +117,7 @@ class WorkScheduleService
             $workSchedule = WorkScheduleRepository::createWorkSchedule($data);
             $workSchedule->time = json_decode($workSchedule->time);
 
-            $infors->messsge = true;
+            $infors->messsge = 'Đặt lịch tư vấn thành công !';
             $content = view('emails.book_advise', compact(['infors', 'user']))->render();
             if ($user) {
                 Queue::push(new SendMailNotify($user->email, $content));
@@ -204,7 +205,7 @@ class WorkScheduleService
             $workSchedule = WorkScheduleRepository::createWorkSchedule($data);
             $workSchedule->time = json_decode($workSchedule->time);
 
-            $infors->messsge = true;
+            $infors->messsge = 'Đặt lịch dịch vụ thành công !';
             $content = view('emails.book_service', compact(['infors', 'user']))->render();
             if ($user) {
                 Queue::push(new SendMailNotify($user->email, $content));
@@ -254,10 +255,11 @@ class WorkScheduleService
             $busy_doctors = array_unique($this->workScheduleRepository->getWorkSchedule($filter)->get()->pluck('id_doctor')->toArray());
 
             $free_time_doctors = array_diff($id_doctors, $busy_doctors);
-            if (empty($free_time_doctors)) {
-                return $this->responseOK(200, null, 'Tất cả các bác sĩ đều bận trong khung giờ này !');
-            }
+            // if (empty($free_time_doctors)) {
+            //     return $this->responseOK(200, null, 'Tất cả các bác sĩ đều bận trong khung giờ này !');
+            // }
 
+            $free_time_doctors[] = $workSchedule->doctor_id; // LẤY THÊM BÁC SĨ HIỆN TẠI RA NỮA
             $listDoctors = User::whereIn('id', $free_time_doctors)->get();
             foreach ($listDoctors as $doctor) {
                 $doctor->id_doctor = $doctor->id;
@@ -288,6 +290,11 @@ class WorkScheduleService
             $workSchedule = $this->workScheduleRepository->searchWorkSchedule($filter)->first();
             if (empty($workSchedule)) {
                 return $this->responseError(400, 'Không tìm thấy lịch tư vấn hay dịch vụ !');
+            }
+
+            // listSpecifyDoctor LẤY THÊM BÁC SĨ HIỆN TẠI => UPDATE LẠI DOCTOR Hiện tại thì không làm gì cả
+            if ($workSchedule->doctor_id == $id_doctor) {
+                return $this->responseOK(200, $workSchedule, 'Chỉ định bác sĩ thành công !');
             }
 
             // if ($workSchedule->doctor_id != null) {
@@ -767,6 +774,141 @@ class WorkScheduleService
             }
 
             return $this->responseOK(200, null, 'Hủy nhiều lịch thành công !');
+        } catch (Throwable $e) {
+            return $this->responseError(400, $e->getMessage());
+        }
+    }
+
+    public function updateInforPatient(RequestUpdateInforPatient $request, $id_work_schedule)
+    {
+        try {
+            $hospital = Auth::user();
+            $filter = (object) [
+                'search' => '',
+                'hospital_id' => $hospital->id,
+                'work_schedule_id' => $id_work_schedule,
+                'role' => 'hospital',
+            ];
+            $workSchedule = $this->workScheduleRepository->searchWorkSchedule($filter)->first();
+            if (empty($workSchedule)) {
+                return $this->responseError(400, 'Không tìm thấy lịch tư vấn hay dịch vụ !');
+            }
+
+            $workSchedule = $workSchedule->update($request->all());
+            $workSchedule = $this->workScheduleRepository->searchWorkSchedule($filter)->first();
+
+            if ($workSchedule->service_id) { // DỊCH VỤ
+                $filter = (object) [
+                    'id_hospital_services' => $workSchedule->service_id,
+                    'is_delete' => 0,
+                ];
+                $hospitalServices = HospitalServiceRepository::searchAll($filter)->first();
+
+                // all doctor of Department of Hospital of Service Hospital
+                // lấy ra danh sách id tất cả các bác sĩ của chuyên khoa chứa dịch vụ đó
+                $filter = (object) [
+                    'role' => 'doctor',
+                    'is_accept' => 1,
+                    'is_confirm' => 1,
+                    'id_department' => $hospitalServices->id_department,
+                    'id_hospital' => $hospitalServices->id_hospital,
+                ];
+                $allDoctor = UserRepository::doctorOfHospital($filter)->get();
+                $hospital = UserRepository::findUserById($hospitalServices->id_hospital);
+
+                $user = null;
+                if ($workSchedule->user_id) {
+                    $user = User::find($workSchedule->user_id);
+                }
+
+                $time = $workSchedule->work_schedule_time;
+                $time = json_decode($time);
+                $startTime = $time->interval[0];
+                $endTime = $time->interval[1];
+                $date = $time->date;
+
+                $infors = (object) [
+                    'messsge' => false,
+                    'name_patient' => $request->name_patient,
+                    'email_patient' => $request->email_patient,
+                    'gender_patient' => $request->gender_patient,
+                    'phone_patient' => $request->phone_patient,
+                    'address_patient' => $request->address_patient,
+                    'health_condition' => $request->health_condition,
+                    'date_of_birth_patient' => $request->date_of_birth_patient,
+                    'name_service' => $hospitalServices->name,
+                    'price' => $hospitalServices->price,
+                    'name_department' => $hospitalServices->name_department,
+                    'name_hospital' => $hospital->name,
+                    'phone_hospital' => $hospital->phone,
+                    'address_hospital' => $hospital->address,
+                    'time' => $time,
+                ];
+                $content = view('emails.book_service', compact(['infors', 'user']))->render();
+                $workSchedule = $workSchedule->update(['content' => $content]);
+                $infors->messsge = 'Lịch dịch vụ của bạn đã được cập nhật lại như sau !';
+                $content = view('emails.book_service', compact(['infors', 'user']))->render();
+            } else { // TƯ VẤN
+                $user = null;
+                if ($workSchedule->user_id) {
+                    $user = User::find($workSchedule->user_id);
+                }
+
+                $doctor = UserRepository::doctorOfHospital(['id_doctor' => $workSchedule->doctor_id])->first();
+                $hospital = UserRepository::findUserById($doctor->id_hospital);
+
+                $time = $workSchedule->work_schedule_time;
+                $id_doctor = $request->id_doctor;
+                $filter = (object) [
+                    'id_doctors' => [$id_doctor],
+                    'time' => $time,
+                ];
+
+                $time = json_decode($time);
+                $startTime = $time->interval[0];
+                $endTime = $time->interval[1];
+                $date = $time->date;
+
+                $infors = (object) [
+                    'messsge' => false,
+                    'name_patient' => $request->name_patient,
+                    'email_patient' => $request->email_patient,
+                    'gender_patient' => $request->gender_patient,
+                    'phone_patient' => $request->phone_patient,
+                    'address_patient' => $request->address_patient,
+                    'health_condition' => $request->health_condition,
+                    'date_of_birth_patient' => $request->date_of_birth_patient,
+                    'name_doctor' => $doctor->name_doctor,
+                    'email_doctor' => $doctor->email,
+                    'phone_doctor' => $doctor->phone,
+                    'name_department' => $doctor->name_department,
+                    'name_hospital' => $hospital->name,
+                    'phone_hospital' => $hospital->phone,
+                    'address_hospital' => $hospital->address,
+                    'price' => $doctor->price,
+                    'time' => $time,
+                ];
+                $content = view('emails.book_advise', compact(['infors', 'user']))->render();
+                $workSchedule = $workSchedule->update(['content' => $content]);
+                $infors->messsge = 'Lịch tư vấn của bạn đã được cập nhật lại như sau !';
+                $content = view('emails.book_advise', compact(['infors', 'user']))->render();
+            }
+
+            $filter = (object) [
+                'search' => '',
+                'hospital_id' => $hospital->id,
+                'work_schedule_id' => $id_work_schedule,
+                'role' => 'hospital',
+            ];
+            $workSchedule = $this->workScheduleRepository->searchWorkSchedule($filter)->first();
+            $workSchedule->time = json_decode($workSchedule->time);
+
+            if ($user) {
+                Queue::push(new SendMailNotify($user->email, $content));
+            }
+            Queue::push(new SendMailNotify($request->email_patient, $content));
+
+            return $this->responseOK(200, $workSchedule, 'Cập nhật thông tin bệnh nhân thành công !');
         } catch (Throwable $e) {
             return $this->responseError(400, $e->getMessage());
         }
