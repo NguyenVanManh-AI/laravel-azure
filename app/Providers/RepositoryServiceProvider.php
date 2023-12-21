@@ -26,6 +26,8 @@ use App\Repositories\InforHospitalInterface;
 use App\Repositories\InforHospitalRepository;
 use App\Repositories\InforUserInterface;
 use App\Repositories\InforUserRepository;
+use App\Repositories\PasswordResetInterface;
+use App\Repositories\PasswordResetRepository;
 use App\Repositories\ProvinceInterface;
 use App\Repositories\ProvinceRepository;
 use App\Repositories\RatingInterface;
