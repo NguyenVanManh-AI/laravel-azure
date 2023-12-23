@@ -11,4 +11,6 @@ interface WorkScheduleInterface extends RepositoryInterface
     public static function getWorkSchedule($filter);
 
     public static function searchWorkSchedule($filter);
+
+    public static function searchWorkScheduleStatistical($filter);
 }

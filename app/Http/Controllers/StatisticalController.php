@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\RequestStatistical;
 use App\Services\StatisticalService;
+use Illuminate\Http\Request;
 
 class StatisticalController extends Controller
 {
@@ -27,6 +28,11 @@ class StatisticalController extends Controller
     public function top(RequestStatistical $request)
     {
         return $this->statisticalService->top($request);
+    }
+
+    public function overview(Request $request)
+    {
+        return $this->statisticalService->overview($request);
     }
 
     public function advise(RequestStatistical $request)

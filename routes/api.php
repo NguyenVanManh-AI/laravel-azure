@@ -288,6 +288,7 @@ Route::prefix('statistical')->controller(StatisticalController::class)->group(fu
 
     Route::middleware(['auth:admin_api,user_api', 'role:admin,superadmin,manager,hospital'])->group(function () {
         Route::get('/top', 'top');
+        Route::get('/overview', 'overview');
     });
 
     Route::middleware(['auth:user_api', 'role:hospital'])->group(function () {

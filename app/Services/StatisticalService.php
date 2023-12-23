@@ -13,7 +13,9 @@ use App\Repositories\DepartmentRepository;
 use App\Repositories\InforDoctorRepository;
 use App\Repositories\InforHospitalRepository;
 use App\Repositories\UserRepository;
+use App\Repositories\WorkScheduleRepository;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Throwable;
@@ -51,13 +53,13 @@ class StatisticalService
     // admin
     public function statisticalUser($request, $role)
     {
-        if ($request->has('start_date')) {
+        if ($request->start_date) {
             $startDate = Carbon::parse($request->start_date);
         } else {
             $startDate = User::orderBy('created_at', 'asc')->value('created_at');
         }
 
-        if ($request->has('end_date')) {
+        if ($request->end_date) {
             $endDate = Carbon::parse($request->end_date);
         } else {
             $endDate = Carbon::now();
@@ -119,13 +121,13 @@ class StatisticalService
 
     public function statisticalArticle($request, $role)
     {
-        if ($request->has('start_date')) {
+        if ($request->start_date) {
             $startDate = Carbon::parse($request->start_date);
         } else {
             $startDate = Article::orderBy('created_at', 'asc')->value('created_at');
         }
 
-        if ($request->has('end_date')) {
+        if ($request->end_date) {
             $endDate = Carbon::parse($request->end_date);
         } else {
             $endDate = Carbon::now();
@@ -199,78 +201,228 @@ class StatisticalService
             $user = Auth::user();
             $data = (object) [];
             $top = $request->top ?? 5;
+            $type = $request->type;
 
             // articles
-            $filter = (object) [
-                'search' => '',
-                'orderBy' => 'articles.search_number',
-                'orderDirection' => 'DESC',
-                'is_accept' => 'both',
-                'is_show' => 'both',
-            ];
-            if ($user->role == 'hospital') {
-                $filter->id_hospital = $user->id;
-                $doctors = InforDoctorRepository::getInforDoctor(['id_hospital' => $user->id])->get();
-                $idDoctorHospitals = [];
-                $idDoctorHospitals[] = $user->id;
-                foreach ($doctors as $doctor) {
-                    $idDoctorHospitals[] = $doctor->id_doctor;
+            if ($type == 'article') {
+                $filter = (object) [
+                    'search' => '',
+                    'orderBy' => 'articles.search_number',
+                    'orderDirection' => 'DESC',
+                    'is_accept' => 'both',
+                    'is_show' => 'both',
+                ];
+                if ($user->role == 'hospital') {
+                    $filter->id_hospital = $user->id;
+                    $doctors = InforDoctorRepository::getInforDoctor(['id_hospital' => $user->id])->get();
+                    $idDoctorHospitals = [];
+                    $idDoctorHospitals[] = $user->id;
+                    foreach ($doctors as $doctor) {
+                        $idDoctorHospitals[] = $doctor->id_doctor;
+                    }
+                    $filter->id_doctor_hospital = $idDoctorHospitals;
                 }
-                $filter->id_doctor_hospital = $idDoctorHospitals;
+                $articles = ArticleRepository::searchAll($filter)->paginate($top);
+                $data->top_articles = $articles;
             }
-            $articles = ArticleRepository::searchAll($filter)->paginate($top);
-            $data->top_articles = $articles;
 
             // categories
-            $filter = (object) [
-                'search' => '',
-                'orderBy' => 'categories.search_number',
-                'orderDirection' => 'DESC',
-            ];
-            $categories = CategoryRepository::searchCategory($filter)->paginate($top);
-            $data->top_categories = $categories;
+            if ($type == 'category') {
+                $filter = (object) [
+                    'search' => '',
+                    'orderBy' => 'categories.search_number',
+                    'orderDirection' => 'DESC',
+                ];
+                $categories = CategoryRepository::searchCategory($filter)->paginate($top);
+                $data->top_categories = $categories;
+            }
 
             // departments
-            $filter = (object) [
-                'search' => '',
-                'orderBy' => 'departments.search_number',
-                'orderDirection' => 'DESC',
-                'id_departments' => $id_departments ?? [0],
-            ];
-            $departments = DepartmentRepository::searchDepartment($filter)->paginate($top);
-            $data->top_departments = $departments;
+            if ($type == 'department') {
+                $filter = (object) [
+                    'search' => '',
+                    'orderBy' => 'departments.search_number',
+                    'orderDirection' => 'DESC',
+                    'id_departments' => $id_departments ?? [0],
+                ];
+                $departments = DepartmentRepository::searchDepartment($filter)->paginate($top);
+                $data->top_departments = $departments;
+            }
 
             // doctor
-            $filter = (object) [
-                'search' => '',
-                'role' => 'doctor',
-                'orderBy' => 'infor_doctors.search_number',
-                'is_accept' => 'both',
-                'is_confirm' => 'both',
-                'name_department' => '',
-                'orderDirection' => 'DESC',
-            ];
-            if ($user->role == 'hospital') {
-                $filter->id_hospital = $user->id;
+            if ($type == 'doctor') {
+                $filter = (object) [
+                    'search' => '',
+                    'role' => 'doctor',
+                    'orderBy' => 'infor_doctors.search_number',
+                    'is_accept' => 'both',
+                    'is_confirm' => 'both',
+                    'name_department' => '',
+                    'orderDirection' => 'DESC',
+                ];
+                if ($user->role == 'hospital') {
+                    $filter->id_hospital = $user->id;
+                }
+                $doctors = UserRepository::doctorOfHospital($filter)->paginate($top);
+                $data->top_doctors = $doctors;
             }
-            $doctors = UserRepository::doctorOfHospital($filter)->paginate($top);
-            $data->top_doctors = $doctors;
 
             // hospitals
-            $filter = (object) [
-                'search' => '',
-                'is_accept' => 'both',
-                'orderBy' => 'infor_hospitals.search_number',
-                'orderDirection' => 'DESC',
-            ];
-            $hospitals = InforHospitalRepository::searchHospital($filter)->paginate($top);
-            foreach ($hospitals as $hospital) {
-                $hospital->infrastructure = json_decode($hospital->infrastructure);
-                $hospital->location = json_decode($hospital->location);
+            if ($type == 'hospital') {
+                $filter = (object) [
+                    'search' => '',
+                    'is_accept' => 'both',
+                    'orderBy' => 'infor_hospitals.search_number',
+                    'orderDirection' => 'DESC',
+                ];
+                $hospitals = InforHospitalRepository::searchHospital($filter)->paginate($top);
+                foreach ($hospitals as $hospital) {
+                    $hospital->infrastructure = json_decode($hospital->infrastructure);
+                    $hospital->location = json_decode($hospital->location);
+                }
+                $data->top_hospitals = $hospitals;
             }
-            $data->top_hospitals = $hospitals;
 
             return $this->responseOK(200, $data, 'Thống kê những bài viết , danh mục , chuyên khoa , bệnh viện nổi bật thành công !');
+        } catch (Throwable $e) {
+            return $this->responseError(400, $e->getMessage());
+        }
+    }
+
+    public function overViewArticle($is_accept, $is_show, $request)
+    {
+        if ($request->start_date) {
+            $startDate = Carbon::parse($request->start_date);
+        } else {
+            $startDate = Article::orderBy('created_at', 'asc')->value('created_at');
+        }
+
+        if ($request->end_date) {
+            $endDate = Carbon::parse($request->end_date);
+        } else {
+            $endDate = Carbon::now();
+        }
+
+        $user = Auth::user();
+        // articles
+        $filter = (object) [
+            'search' => '',
+            'orderBy' => 'articles.search_number',
+            'orderDirection' => 'DESC',
+            'is_accept' => $is_accept,
+            'is_show' => $is_show,
+        ];
+        if ($user->role == 'hospital') {
+            $filter->id_hospital = $user->id;
+            $doctors = InforDoctorRepository::getInforDoctor(['id_hospital' => $user->id])->get();
+            $idDoctorHospitals = [];
+            $idDoctorHospitals[] = $user->id;
+            foreach ($doctors as $doctor) {
+                $idDoctorHospitals[] = $doctor->id_doctor;
+            }
+            $filter->id_doctor_hospital = $idDoctorHospitals;
+        }
+
+        return ArticleRepository::searchAll($filter) // hay
+            ->whereDate('articles.created_at', '>=', $startDate)
+            ->whereDate('articles.created_at', '<=', $endDate)->count();
+
+        // ->when(!empty($year), function ($query) use ($year) {
+        // $query->whereYear('articles.created_at', $year);
+        // })
+    }
+
+    public function overViewWorkSchedule($is_service, $status, $is_confirm, $request)
+    {
+        if ($request->start_date) {
+            $startDate = Carbon::parse($request->start_date);
+        } else {
+            $startDate = WorkSchedule::orderBy('created_at', 'asc')->value('created_at');
+        }
+
+        if ($request->end_date) {
+            $endDate = Carbon::parse($request->end_date);
+        } else {
+            $endDate = Carbon::now();
+        }
+
+        $user = Auth::user();
+        // workSchedule
+        $filter = (object) [
+            'search' => '',
+            'department_name' => '',
+            'hospital_id' => $user->id,
+            'doctor_id' => null,
+            'is_service' => $is_service ?? '',
+            'start_date' => '',
+            'end_date' => '',
+            'orderBy' => 'work_schedules.id',
+            'orderDirection' => 'DESC',
+            'status' => $status ?? '',
+            'role' => 'hospital',
+            'is_confirm' => $is_confirm ?? 'both',
+
+            'overview_start_date' => $startDate,
+            'overview_end_date' => $endDate,
+        ];
+
+        return WorkScheduleRepository::searchWorkScheduleStatistical($filter)->count();
+    }
+
+    public function overViewUser($request)
+    {
+        if ($request->start_date) {
+            $startDate = Carbon::parse($request->start_date);
+        } else {
+            $startDate = User::orderBy('created_at', 'asc')->value('created_at');
+        }
+
+        if ($request->end_date) {
+            $endDate = Carbon::parse($request->end_date);
+        } else {
+            $endDate = Carbon::now();
+        }
+
+        $query = User::whereDate('users.created_at', '>=', $startDate)
+            ->whereDate('users.created_at', '<=', $endDate);
+
+        $user = (object) [
+            'all' => $query->count(),
+            'accept' => $query->where('is_accept', 1)->count(),
+        ];
+
+        return $user;
+    }
+
+    public function overview(Request $request)
+    {
+        try {
+            $user = Auth::user();
+            $data = (object) [];
+
+            $article = (object) [
+                'all' => $this->overViewArticle('both', 'both', $request),
+                'accept' => $this->overViewArticle('1', 'both', $request),
+                'show' => $this->overViewArticle('both', '1', $request),
+            ];
+            $data->article = $article;
+
+            if ($user->role == 'hospital') {
+                $work_schedule = (object) [
+                    'all' => $this->overViewWorkSchedule('', '', 'both', $request),
+                    'confirm' => $this->overViewWorkSchedule('', '', 1, $request),
+                    'confirm_and_complete' => $this->overViewWorkSchedule('', 'complete', 1, $request),
+                    'service' => $this->overViewWorkSchedule('service', '', 'both', $request),
+                    'advice' => $this->overViewWorkSchedule('advise', '', 'both', $request),
+                ];
+                $data->work_schedule = $work_schedule;
+            }
+
+            if ($user->role != 'hospital') {
+                $data->user = $this->overViewUser($request);
+            }
+
+            return $this->responseOK(200, $data, 'Thống kê tổng quan thành công ! ');
         } catch (Throwable $e) {
             return $this->responseError(400, $e->getMessage());
         }
@@ -281,13 +433,13 @@ class StatisticalService
         try {
             $data = (object) [];
 
-            if ($request->has('start_date')) {
+            if ($request->start_date) {
                 $startDate = Carbon::parse($request->start_date);
             } else {
                 $startDate = WorkSchedule::orderBy('created_at', 'asc')->value('created_at');
             }
 
-            if ($request->has('end_date')) {
+            if ($request->end_date) {
                 $endDate = Carbon::parse($request->end_date);
             } else {
                 $endDate = Carbon::now();
@@ -335,13 +487,13 @@ class StatisticalService
         try {
             $data = (object) [];
 
-            if ($request->has('start_date')) {
+            if ($request->start_date) {
                 $startDate = Carbon::parse($request->start_date);
             } else {
                 $startDate = WorkSchedule::orderBy('created_at', 'asc')->value('created_at');
             }
 
-            if ($request->has('end_date')) {
+            if ($request->end_date) {
                 $endDate = Carbon::parse($request->end_date);
             } else {
                 $endDate = Carbon::now();
@@ -388,13 +540,13 @@ class StatisticalService
     public function serviceTable(RequestStatistical $request)
     {
         try {
-            if ($request->has('start_date')) {
+            if ($request->start_date) {
                 $startDate = Carbon::parse($request->start_date);
             } else {
                 $startDate = WorkSchedule::orderBy('created_at', 'asc')->value('created_at');
             }
 
-            if ($request->has('end_date')) {
+            if ($request->end_date) {
                 $endDate = Carbon::parse($request->end_date);
             } else {
                 $endDate = Carbon::now();
@@ -468,13 +620,13 @@ class StatisticalService
     public function adviseTable(RequestStatistical $request)
     {
         try {
-            if ($request->has('start_date')) {
+            if ($request->start_date) {
                 $startDate = Carbon::parse($request->start_date);
             } else {
                 $startDate = WorkSchedule::orderBy('created_at', 'asc')->value('created_at');
             }
 
-            if ($request->has('end_date')) {
+            if ($request->end_date) {
                 $endDate = Carbon::parse($request->end_date);
             } else {
                 $endDate = Carbon::now();
