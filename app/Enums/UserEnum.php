@@ -15,11 +15,11 @@ class UserEnum extends BaseEnum
 
     public const DOMAIN_PATH = 'https://vanmanh.azurewebsites.net/'; // azure
 
-    public const FORGOT_FORM_USER = 'https://react-vercel-95yac2b5v-vanmanh-react.vercel.app/user/forgot-form?token=';
+    public const FORGOT_FORM_USER = 'https://pbl6-health-care.up.railway.app/auth/reset-password/user?token=';
 
-    public const FORGOT_FORM_ADMIN = 'https://react-vercel-95yac2b5v-vanmanh-react.vercel.app/admin/forgot-form?token=';
+    public const FORGOT_FORM_ADMIN = 'https://pbl6-health-care.up.railway.app/auth/reset-password/admin?token=';
 
-    public const VERIFY_MAIL_USER = 'https://react-vercel-95yac2b5v-vanmanh-react.vercel.app/user/verify-email?token=';
+    public const VERIFY_MAIL_USER = 'https://pbl6-health-care.up.railway.app/auth/forgot-password/user?token=';
 
-    public const VERIFY_MAIL_ADMIN = 'https://react-vercel-95yac2b5v-vanmanh-react.vercel.app/admin/verify-email?token=';
+    public const VERIFY_MAIL_ADMIN = 'https://pbl6-health-care.up.railway.app/auth/forgot-password/admin?token=';
 }
