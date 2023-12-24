@@ -19,7 +19,7 @@ class UserEnum extends BaseEnum
 
     public const FORGOT_FORM_ADMIN = 'https://pbl6-health-care.up.railway.app/auth/reset-password/admin?token=';
 
-    public const VERIFY_MAIL_USER = 'https://pbl6-health-care.up.railway.app/auth/forgot-password/user?token=';
+    public const VERIFY_MAIL_USER = 'https://pbl6-health-care.up.railway.app/auth/verify-email/user?token=';
 
-    public const VERIFY_MAIL_ADMIN = 'https://pbl6-health-care.up.railway.app/auth/forgot-password/admin?token=';
+    public const VERIFY_MAIL_ADMIN = 'https://pbl6-health-care.up.railway.app/auth/verify-email/admin?token=';
 }
