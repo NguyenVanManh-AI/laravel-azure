@@ -83,27 +83,28 @@ class InforUserService
             ];
             $userEmail = UserRepository::findUser($filter)->first();
             if ($userEmail) {
-                if ($userEmail['password']) {
-                    return $this->responseError(400, 'Tài khoản đã tồn tại !');
-                } else {
-                    $avatar = $this->saveAvatar($request);
+                return $this->responseError(400, 'Tài khoản đã tồn tại !');
+                // if ($userEmail['password']) {
+                //     return $this->responseError(400, 'Tài khoản đã tồn tại !');
+                // } else { // bỏ vì register new user không thể access vào một tài khoản gg hay fb đã có sẵn trước đó
+                //     $avatar = $this->saveAvatar($request);
 
-                    $data = array_merge(
-                        $request->all(),
-                        ['password' => Hash::make($request->password), 'avatar' => $avatar]
-                    );
-                    $userEmail = UserRepository::updateUser($userEmail->id, $data);
+                //     $data = array_merge(
+                //         $request->all(),
+                //         ['password' => Hash::make($request->password), 'avatar' => $avatar]
+                //     );
+                //     $userEmail = UserRepository::updateUser($userEmail->id, $data);
 
-                    $filter = [
-                        'id_user' => $userEmail->id ?? '',
-                    ];
-                    $inforUser = InforUserRepository::getInforUser($filter)->first();
-                    $inforUser = InforUserRepository::updateInforUser($inforUser->id, $request->all());
+                //     $filter = [
+                //         'id_user' => $userEmail->id ?? '',
+                //     ];
+                //     $inforUser = InforUserRepository::getInforUser($filter)->first();
+                //     $inforUser = InforUserRepository::updateInforUser($inforUser->id, $request->all());
 
-                    $user = array_merge($userEmail->toArray(), $inforUser->toArray());
+                //     $user = array_merge($userEmail->toArray(), $inforUser->toArray());
 
-                    return $this->responseOK(200, $user, 'Đăng kí tài khoản thành công . ');
-                }
+                //     return $this->responseOK(200, $user, 'Đăng kí tài khoản thành công . ');
+                // }
             } else {
                 $avatar = $this->saveAvatar($request);
 
@@ -137,7 +138,7 @@ class InforUserService
         }
     }
 
-    // Login by Google User
+    // Login by Google User (web)
     public function handleGoogleCallback()
     {
         try {
@@ -344,6 +345,15 @@ class InforUserService
                             'id_user' => $findEmail->id ?? '',
                         ];
                         $inforUser = InforUserRepository::getInforUser($filter)->first();
+                        // nếu không có ảnh thì phải update lại
+                        $_user = User::find($inforUser->id_user);
+                        if ($_user->avatar == null) {
+                            $_user->update([
+                                'avatar' => $ggUser->avatar,
+                            ]);
+                        }
+                        $findEmail->avatar = $ggUser->avatar;
+                        // nếu không có ảnh thì phải update lại
                         $data = [
                             'google_id' => $ggUser->id,
                         ];
@@ -441,6 +451,15 @@ class InforUserService
                             'id_user' => $findEmail->id ?? '',
                         ];
                         $inforUser = InforUserRepository::getInforUser($filter)->first();
+                        // nếu không có ảnh thì phải update lại
+                        $_user = User::find($inforUser->id_user);
+                        if ($_user->avatar == null) {
+                            $_user->update([
+                                'avatar' => $fbUser->avatar,
+                            ]);
+                        }
+                        $findEmail->avatar = $fbUser->avatar;
+                        // nếu không có ảnh thì phải update lại
                         $data = [
                             'facebook_id' => $fbUser->id,
                         ];
