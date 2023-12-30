@@ -6,6 +6,7 @@ use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
 
 class RequestUpdateHospital extends FormRequest
@@ -27,6 +28,7 @@ class RequestUpdateHospital extends FormRequest
      */
     public function rules()
     {
+        // Log::info($this->email);
         // $userId = $this->route('user');
         $userId = Auth::guard('user_api')->user()->id;
 
