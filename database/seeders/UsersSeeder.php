@@ -123,7 +123,7 @@ class UsersSeeder extends Seeder
                                     'province_code' => random_int(1, 63),
                                     'infrastructure' => json_encode(['Máy nội soi', 'Giường bệnh', 'Phòng xét nghiệm', 'Máy chụp phim X-Quang kỹ thuật số', 'Chụp cắt lớp vi tính (Chụp CT)', 'Siêu âm', 'Máy chụp nhũ ảnh', 'Máy khám tân tiến']),
                                     'description' => 'Bệnh viện tốt, đa chuyên khoa, dịch vụ giá cả hợp lí .',
-                                    'location' => json_encode([19, 29]),
+                                    'location' => json_encode([16.06133291436767, 108.22706006427583]),
                                     'search_number' => random_int(0, 300),
                                 ];
                                 $inforUser = InforHospitalRepository::createHospital($data);
