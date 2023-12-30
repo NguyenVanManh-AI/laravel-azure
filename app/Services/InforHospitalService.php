@@ -240,9 +240,13 @@ class InforHospitalService
             $user = UserRepository::findUserById(auth('user_api')->user()->id);
             $oldEmail = $user->email;
 
+            // input location : [16.07527968579236, 108.15007925033545] (Text) (Form Data)
+            // => không cần encode => có nghĩa là nếu client đã JSON.stringtify thì trên server không cần làm gì nữa
+            // => nếu client truyền lên một [16.07527968579236, 108.15007925033545] (Array hay Object , JSON) thì mới cần encode
+
             $request->merge([
-                'infrastructure' => json_encode($request->infrastructure),
-                'location' => json_encode($request->location),
+                'infrastructure' => $request->infrastructure,
+                'location' => $request->location,
             ]);
 
             if ($request->hasFile('avatar')) {
@@ -269,7 +273,7 @@ class InforHospitalService
                 $request['cover_hospital'] = $inforHospital->cover_hospital;
                 $inforHospital = InforHospitalRepository::updateInforHospital($inforHospital->id, $request->all());
             }
-            $message = 'Hospital successfully updated';
+            $message = 'Cập nhật thông tin bệnh viện thành công !';
 
             // sendmail verify
             if ($oldEmail != $request->email) {
