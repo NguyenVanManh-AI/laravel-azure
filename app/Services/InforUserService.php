@@ -401,7 +401,7 @@ class InforUserService
 
                     $arrUser = array_merge($newUser->toArray(), $newInforUser->toArray());
 
-                    return $this->responseOK(201, $arrUser, 'Đăng kí bằng google thành công !');
+                    return $this->responseOK(200, $arrUser, 'Đăng kí bằng google thành công !');
                 }
             }
         } catch (Throwable $e) {
