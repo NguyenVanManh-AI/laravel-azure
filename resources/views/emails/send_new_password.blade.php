@@ -39,10 +39,10 @@
     
     <div style="width: 30%;height: 2px;background-color: silver;margin: auto;"></div>
     <div style="margin-top: 10px;margin-bottom: 5px;font-size: 30px;">
-        <span style="margin-right: 5px;margin-left: 5px;cursor: pointer;"><a href="https://www.facebook.com/"><img style="width: 40px" src="https://lh3.googleusercontent.com/drive-viewer/AK7aPaDgJ5iImE-1lv68eupQbVbH4YhslK_VmkcmwuEnQtyG-uunjT_uy3zF45o30jC_df_33PzOgFcPxtEyQskDM3s9qTLL2A=w1919-h878" alt=""></a></span>
-        <span style="margin-right: 5px;margin-left: 5px;cursor: pointer;"><a href="https://www.instagram.com/"><img style="width: 40px" src="https://lh3.googleusercontent.com/drive-viewer/AK7aPaBesoQesgiHEsfRstJV2P90NaCbNvb2R2USBxjzMVdiVXLQfmtNCpQ0kHAXFU9K8FFI9B8cQKxi-LlGcasOl5teonDnBg=w1919-h878" alt=""></a> </span>
-        <span style="margin-right: 5px;margin-left: 5px;cursor: pointer;"><a href="https://twitter.com/"><img style="width: 45px" src="https://lh3.googleusercontent.com/drive-viewer/AK7aPaAEf7c2umur0Ld2p-5PJdxYNbzbHCvYEEu_jfVp4JqtnykaB8IjefMVW83szvmflsLcFegFR40rxbKJlUZODZKLQMyF=w1919-h878" alt=""></a> </span>
-        <span style="margin-right: 5px;margin-left: 5px;cursor: pointer;"><a href="https://www.youtube.com/"><img style="width: 50px" src="https://lh3.googleusercontent.com/drive-viewer/AK7aPaB5PRRGQGZRuiVsiMGK6XNA5c1vIgenY9aFYNL3JPpcnk-bzX-z0A4AZwiUnG8vZpWaiXTvKp-8M-6Et1OuNTLXUpxQBQ=w1919-h878" alt=""></a></span>
+        <span style="margin-right: 5px;margin-left: 5px;cursor: pointer;"><a href="https://www.facebook.com/"><img style="width: 40px" src="https://lh3.googleusercontent.com/u/0/d/1Z_J8KHAfxx0pcuiZ1Nu39FCaBYKrzbzE=w1919-h878-iv1" alt=""></a></span>
+        <span style="margin-right: 5px;margin-left: 5px;cursor: pointer;"><a href="https://www.instagram.com/"><img style="width: 40px" src="https://lh3.googleusercontent.com/u/0/d/14jBzk8R4A9r6cmMdm5MnOUSuZtB1v5Iz=w1919-h424-iv1" alt=""></a> </span>
+        <span style="margin-right: 5px;margin-left: 5px;cursor: pointer;"><a href="https://twitter.com/"><img style="width: 45px" src="https://lh3.googleusercontent.com/u/0/d/1XJ6bpFu9Fa61WGeaSYo_Yf3JFdLfj_rY=w1919-h878-iv1" alt=""></a> </span>
+        <span style="margin-right: 5px;margin-left: 5px;cursor: pointer;"><a href="https://www.youtube.com/"><img style="width: 50px" src="https://lh3.googleusercontent.com/u/0/d/1PjSKQW7f9G-tyySAphFMsKpg6mOw_5Gx=w1919-h424-iv1" alt=""></a></span>
     </div>
     <p style="margin: 0;margin-bottom: 10px;">Bạn đã nhận được email này với tư cách là người dùng đăng ký của <a style="font-weight: bold;color: rgb(0, 123, 255);" href="https://react-vercel-95yac2b5v-vanmanh-react.vercel.app/"><strong>Elisterhealthcare.com</strong></a></p>
     <p style="margin: 0;margin-bottom: 10px;">Bạn có thể hủy đăng ký nhận những email này tại đây.</p>
@@ -51,13 +51,13 @@
     <p style="font-weight: bold;margin: 0;margin-bottom: 10px;">© Elisterhealthcare, Inc</p>
     <div id="div_img">
         <a style="text-decoration: none;" href="https://react-vercel-95yac2b5v-vanmanh-react.vercel.app/">
-            <img style="width: 150px;margin-left: 10px;margin-right: 10px;" src="https://lh3.googleusercontent.com/drive-viewer/AK7aPaAVVzCYweZdp_cmfJXdPUnXN-I4b7eF3sZnJHP7-kagWCYXwqz7QyKK0IgdekcwG0kvjbhuyrTeTtAeRR0D-CHwc3SiUg=w1919-h878" alt="">
+            <img style="width: 150px;margin-left: 10px;margin-right: 10px;" src="https://lh3.googleusercontent.com/u/0/d/14Jk6iP-hmK6xVDtymERrSypgr0IrE1RW=w1919-h424-iv2" alt="">
         </a>
         <a style="text-decoration: none;" href="https://react-vercel-95yac2b5v-vanmanh-react.vercel.app/">
-            <img style="width: 150px;margin-left: 10px;margin-right: 10px;" src="https://lh3.googleusercontent.com/drive-viewer/AK7aPaAVVzCYweZdp_cmfJXdPUnXN-I4b7eF3sZnJHP7-kagWCYXwqz7QyKK0IgdekcwG0kvjbhuyrTeTtAeRR0D-CHwc3SiUg=w1919-h878" alt="">
+            <img style="width: 150px;margin-left: 10px;margin-right: 10px;" src="https://lh3.googleusercontent.com/u/0/d/14Jk6iP-hmK6xVDtymERrSypgr0IrE1RW=w1919-h424-iv2" alt="">
         </a>
         <a style="text-decoration: none;" href="https://react-vercel-95yac2b5v-vanmanh-react.vercel.app/">
-            <img style="width: 150px;margin-left: 10px;margin-right: 10px;" src="https://lh3.googleusercontent.com/drive-viewer/AK7aPaAVVzCYweZdp_cmfJXdPUnXN-I4b7eF3sZnJHP7-kagWCYXwqz7QyKK0IgdekcwG0kvjbhuyrTeTtAeRR0D-CHwc3SiUg=w1919-h878" alt="">
+            <img style="width: 150px;margin-left: 10px;margin-right: 10px;" src="https://lh3.googleusercontent.com/u/0/d/14Jk6iP-hmK6xVDtymERrSypgr0IrE1RW=w1919-h424-iv2" alt="">
         </a>
     </div>
 </div>
